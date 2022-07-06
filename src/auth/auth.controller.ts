@@ -33,7 +33,7 @@ export class AuthController {
     summary: '로그인 페이지(테스트용)',
     description: `카카오 로그인 페이지 주소 입니다.  
     
-    http://172.30.1.53:3000/oauth/kakao/callback`,
+    http://172.30.1.41:3000/oauth/kakao/callback`,
   })
   @Header('Content-Type', 'text/html')
   getKakaoLoginPage(): string {
