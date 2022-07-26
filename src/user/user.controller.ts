@@ -3,8 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
-  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -44,7 +44,7 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @Get('duplicate/nickname')
+  @Get('duplicate/nickname/:nickname')
   @ApiOperation({
     summary: '회원 닉네임 중복체크 API(완료)',
     description: '회원 닉네임 입력',
@@ -58,14 +58,15 @@ export class UserController {
     description: 'Bad Request(nickname should not be empty)',
   })
   async nickNameDuplicate(
-    @Query(ValidationPipe) nickNameDuplicateInputDto: NickNameDuplicateInputDto,
-  ) {
+    @Param(ValidationPipe) nickNameDuplicateInputDto: NickNameDuplicateInputDto,
+  ): Promise<NickNameDuplicateOutputDto> {
     return await this.userService.nickNameDuplicate(nickNameDuplicateInputDto);
   }
 
+  //회원 프로필 추가
   @Post('profile/add')
   @ApiOperation({
-    summary: '회원 프로필 추가 API(1차 완료/ 데이터 추가 예정)',
+    summary: '회원 프로필 추가 API(1차 완료)',
     description: '회원 프로필 추가정보 입력 입니다. 토큰 값 필수!',
   })
   @ApiBody({
@@ -79,18 +80,22 @@ export class UserController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Bad Request(nickname should not be empty)',
+    description: '회원 프로필 추가정보가 등록된 회원 입니다.',
   })
   @ApiResponse({
     status: 401,
     description: '인증 오류',
+  })
+  @ApiResponse({
+    status: 409,
+    description: '중복된 entry가 존재합니다.',
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
   async addUserProfile(
     @Req() req,
     @Body(ValidationPipe) profileDetailInputDto: ProfileDetailInputDto,
-  ) {
+  ): Promise<ProfileDetailOutputDto> {
     return await this.userService.addUserProfile(
       req.user,
       profileDetailInputDto,
@@ -114,9 +119,13 @@ export class UserController {
     status: 401,
     description: '인증 오류',
   })
+  @ApiResponse({
+    status: 404,
+    description: '회원 프로필 추가정보가 등록되지 않은 회원 입니다.',
+  })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  async getUserProfile(@Req() req) {
+  async getUserProfile(@Req() req): Promise<SelectProfileOutputDto> {
     return await this.userService.getUserProfile(req.user);
   }
 
@@ -142,13 +151,17 @@ export class UserController {
     status: 401,
     description: '인증 오류',
   })
+  @ApiResponse({
+    status: 409,
+    description: '중복된 entry가 존재합니다.',
+  })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
   async modifyUserProfile(
     @Req() req,
     @Body(ValidationPipe)
     modifyProfileDetailInputDto: ModifyProfileDetailInputDto,
-  ) {
+  ): Promise<ModifyProfileDetailOutputDto> {
     return await this.userService.modifyUserProfile(
       req.user,
       modifyProfileDetailInputDto,
@@ -197,7 +210,10 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
   @UseInterceptors(FileInterceptor('profile', multerOptions))
-  async modifyUserProfileImg(@Req() req, @UploadedFile() file: string) {
+  async modifyUserProfileImg(
+    @Req() req,
+    @UploadedFile() file: string,
+  ): Promise<ModifyProfileImgOutputDto> {
     return await this.userService.modifyUserProfileImg(req.user, file);
   }
 
@@ -216,7 +232,7 @@ export class UserController {
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  async userLogout(@Req() req) {
+  async userLogout(@Req() req): Promise<UserLogoutOutputDto> {
     return await this.userService.userLogout(req.user);
   }
 
@@ -235,7 +251,7 @@ export class UserController {
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  async userWithdrawal(@Req() req) {
+  async userWithdrawal(@Req() req): Promise<UserWithdrawalOutputDto> {
     return await this.userService.userWithdrawal(req.user);
   }
 }

@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     const conn = getConnection();
     const [user] = await conn.query(
-      `SELECT user_id FROM user WHERE user_id='${user_id}' AND status='P'`,
+      `SELECT USER_ID AS user_id FROM USER WHERE USER_ID='${user_id}' AND STATUS='P'`,
     );
 
     if (!user) {

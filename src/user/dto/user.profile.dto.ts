@@ -1,14 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 //회원 프로필 등록 Input 데이터
 export class ProfileDetailInputDto {
-  @ApiProperty({ example: '이름' })
+  @ApiProperty({ example: 'secondLife', description: '닉네임' })
   @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({ example: '닉네임' })
-  @IsNotEmpty()
+  @IsString()
   nickname: string;
 }
 
@@ -29,15 +26,11 @@ export class ProfileDetailOutputDto {
 
 //회원 프로필 데이터
 export class ProfileDetailDto {
-  @ApiProperty({ example: '이름' })
-  name: string;
-  @ApiProperty({ example: '닉네임' })
+  @ApiProperty({ example: 'name', description: '이름' })
   nickname: string;
-  @ApiProperty({ example: 'sns유형' })
-  method: string;
-  @ApiProperty({ example: '이메일' })
+  @ApiProperty({ example: 'email@secondLife.com', description: '이메일' })
   email: string;
-  @ApiProperty({ example: '프로필사진' })
+  @ApiProperty({ example: 'img', description: '프로필사진' })
   profile_img: string;
 }
 
@@ -61,15 +54,11 @@ export class SelectProfileOutputDto {
 
 //회원 프로필 수정 Input 데이터
 export class ModifyProfileDetailInputDto {
-  @ApiProperty({ example: '이름' })
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({ example: '닉네임' })
+  @ApiProperty({ example: 'nickname', description: '닉네임' })
   @IsNotEmpty()
   nickname: string;
 
-  @ApiProperty({ example: '이메일@secondLife.com' })
+  @ApiProperty({ example: '이메일@secondLife.com', description: '이메일' })
   @IsEmail()
   @IsNotEmpty()
   email: string;

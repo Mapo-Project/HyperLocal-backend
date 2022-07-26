@@ -27,8 +27,8 @@ export class NickNameDuplicateOutputDto {
   message: string;
 
   @ApiProperty({
-    example: 'true',
+    example: 'duplicate | unDuplicate',
     description: '중복체크 여부',
   })
-  duplicate: string;
+  duplicate: 'duplicate' | 'unDuplicate';
 }

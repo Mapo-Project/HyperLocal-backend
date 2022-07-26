@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
 import * as fs from 'fs';
+import * as express from 'express';
+import { join } from 'path';
 
 const KEY_URL = process.env.KEY_URL;
 const dev = process.env.NODE_ENV === 'production';
@@ -20,6 +22,7 @@ if (dev) {
       httpsOptions,
       cors: true,
     });
+    app.use('/upload', express.static(join(__dirname, '../upload')));
 
     const config = new DocumentBuilder()
       .addBearerAuth()
@@ -41,6 +44,7 @@ if (dev) {
     const app = await NestFactory.create(AppModule, {
       cors: true,
     });
+    app.use('/upload', express.static(join(__dirname, '../upload')));
 
     const config = new DocumentBuilder()
       .addBearerAuth()

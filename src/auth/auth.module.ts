@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { KakaoStrategy } from './kakao.strategy';
+import { NaverStrategy } from './naver.strategy';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { KakaoStrategy } from './kakao.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, KakaoStrategy, JwtStrategy],
+  providers: [AuthService, KakaoStrategy, NaverStrategy, JwtStrategy],
   exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}
