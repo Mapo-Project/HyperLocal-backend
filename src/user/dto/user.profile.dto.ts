@@ -7,6 +7,15 @@ export class ProfileDetailInputDto {
   @IsNotEmpty()
   @IsString()
   nickname: string;
+
+  @ApiProperty({ example: '01033337777', description: '휴대폰 번호' })
+  @IsNotEmpty()
+  phone_num: string;
+
+  @ApiProperty({ example: 'email@secondLife.com', description: '이메일' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 }
 
 //회원 프로필 등록 Output 데이터

@@ -21,6 +21,9 @@ export class AccessTokenReissuanceOutputDto {
   })
   message: string;
 
-  @ApiProperty({ example: 'accessToken' })
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMjMwNDcwNj',
+    description: 'accessToken 값',
+  })
   accessToken: string;
 }

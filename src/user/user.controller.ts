@@ -44,6 +44,7 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
 
+  //회원 닉네임 중복체크
   @Get('duplicate/nickname/:nickname')
   @ApiOperation({
     summary: '회원 닉네임 중복체크 API(완료)',
@@ -102,6 +103,7 @@ export class UserController {
     );
   }
 
+  //회원 프로필 조회
   @Get('profile/select')
   @ApiOperation({
     summary: '회원 프로필 조회 API(1차 완료)',
@@ -129,6 +131,7 @@ export class UserController {
     return await this.userService.getUserProfile(req.user);
   }
 
+  //회원 프로필 수정
   @Post('profile/modify')
   @ApiOperation({
     summary: '회원 프로필 수정 API(1차 완료)',
@@ -168,6 +171,7 @@ export class UserController {
     );
   }
 
+  //회원 프로필 이미지 수정
   @Post('profile/modify/img')
   @ApiOperation({
     summary: '회원 프로필 이미지 수정 API(완료)',
@@ -217,6 +221,7 @@ export class UserController {
     return await this.userService.modifyUserProfileImg(req.user, file);
   }
 
+  //회원 로그아웃
   @Get('/logout')
   @ApiOperation({
     summary: '회원 로그아웃 API(완료)',
@@ -236,6 +241,7 @@ export class UserController {
     return await this.userService.userLogout(req.user);
   }
 
+  //회원 탈퇴
   @Delete('/withdrawal')
   @ApiOperation({
     summary: '회원 탈퇴 API(완료)',

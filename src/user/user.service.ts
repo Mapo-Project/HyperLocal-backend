@@ -55,7 +55,7 @@ export class UserService {
     user_id: string,
     profileDetailInputDto: ProfileDetailInputDto,
   ): Promise<ProfileDetailOutputDto> {
-    const { nickname } = profileDetailInputDto;
+    const { nickname, phone_num, email } = profileDetailInputDto;
 
     const conn = getConnection();
     const [found] = await conn.query(
@@ -65,7 +65,8 @@ export class UserService {
     if (!found) {
       try {
         await conn.query(
-          `UPDATE USER SET NICKNAME='${nickname}', VERIFY='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}'
+          `UPDATE USER SET NICKNAME='${nickname}', PHONE_NUM='${phone_num}', EMAIL='${email}', 
+           VERIFY='Y', UPDATE_DT=NOW( ), UPDATE_ID='${user_id}'
            WHERE USER_ID='${user_id}' AND STATUS='P'`,
         );
         this.logger.verbose(`User ${user_id} 회원 프로필 추가정보 등록 성공`);
