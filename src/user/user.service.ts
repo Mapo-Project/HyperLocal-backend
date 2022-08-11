@@ -55,7 +55,7 @@ export class UserService {
     user_id: string,
     profileDetailInputDto: ProfileDetailInputDto,
   ): Promise<ProfileDetailOutputDto> {
-    const { nickname, phone_num, email } = profileDetailInputDto;
+    const { nickname, phoneNum, email } = profileDetailInputDto;
 
     const conn = getConnection();
     const [found] = await conn.query(
@@ -65,7 +65,7 @@ export class UserService {
     if (!found) {
       try {
         await conn.query(
-          `UPDATE USER SET NICKNAME='${nickname}', PHONE_NUM='${phone_num}', EMAIL='${email}', 
+          `UPDATE USER SET NICKNAME='${nickname}', PHONE_NUM='${phoneNum}', EMAIL='${email}', 
            VERIFY='Y', UPDATE_DT=NOW( ), UPDATE_ID='${user_id}'
            WHERE USER_ID='${user_id}' AND STATUS='P'`,
         );
@@ -95,7 +95,7 @@ export class UserService {
   async getUserProfile(user_id: string): Promise<SelectProfileOutputDto> {
     const conn = getConnection();
     const [user] = await conn.query(
-      `SELECT NICKNAME AS nickname, EMAIL AS email, PROFILE_IMG AS profile_img, VERIFY AS verify FROM USER 
+      `SELECT NICKNAME AS nickname, EMAIL AS email, PHONE_NUM AS phoneNum, PROFILE_IMG AS profileImg, VERIFY AS verify FROM USER 
        WHERE USER_ID='${user_id}'AND STATUS='P'`,
     );
     if (user) {
@@ -176,6 +176,23 @@ export class UserService {
     );
   }
 
+  async userNeighborhoodRegistration(user_id: string) {
+    const conn = getConnection();
+
+    try {
+      await conn.query(``);
+
+      this.logger.verbose(`User ${user_id} 회원 동네 등록 성공`);
+      return {
+        statusCode: 200,
+        message: '회원 동네 등록 성공',
+      };
+    } catch (error) {
+      this.logger.verbose(`User ${user_id} 회원 동네 등록 실패\n ${error}`);
+      throw new HttpException('회원 동네 등록 실패', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async userLogout(user_id: string): Promise<UserLogoutOutputDto> {
     const conn = getConnection();
 
@@ -201,7 +218,7 @@ export class UserService {
 
     try {
       await conn.query(
-        `UPDATE USER SET STATUS='D', NICKNAME=NULL, EMAIL=NULL, 
+        `UPDATE USER SET STATUS='D', NICKNAME=NULL, EMAIL=NULL, PHONE_NUM=NULL,
          UPDATE_DT=NOW(), UPDATE_ID='${user_id}', PROFILE_IMG=NULL, REFRESH_TOKEN=NULL 
          WHERE USER_ID='${user_id}' AND STATUS='P'`,
       );

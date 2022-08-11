@@ -10,7 +10,7 @@ export class ProfileDetailInputDto {
 
   @ApiProperty({ example: '01033337777', description: '휴대폰 번호' })
   @IsNotEmpty()
-  phone_num: string;
+  phoneNum: string;
 
   @ApiProperty({ example: 'email@secondLife.com', description: '이메일' })
   @IsEmail()
@@ -39,8 +39,10 @@ export class ProfileDetailDto {
   nickname: string;
   @ApiProperty({ example: 'email@secondLife.com', description: '이메일' })
   email: string;
+  @ApiProperty({ example: '01033337777', description: '휴대폰 번호' })
+  phoneNum: string;
   @ApiProperty({ example: 'img', description: '프로필사진' })
-  profile_img: string;
+  profileImg: string;
 }
 
 //회원 프로필 조회 Output 데이터

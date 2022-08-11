@@ -221,6 +221,33 @@ export class UserController {
     return await this.userService.modifyUserProfileImg(req.user, file);
   }
 
+  //회원 동네 등록
+  @Post('/neighborhood/registration')
+  @ApiOperation({
+    summary: '회원 동네 등록 API(완료)',
+    description: '회원 동네 등록 입니다. 토큰 값 필수!',
+  })
+  @ApiBody({
+    description: '등록할 동네 주소',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '회원 동네 등록 성공',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '회원 동네 등록 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async userNeighborhoodRegistration(@Req() req) {
+    return await this.userService.userNeighborhoodRegistration(req.user);
+  }
+
   //회원 로그아웃
   @Get('/logout')
   @ApiOperation({
