@@ -176,18 +176,39 @@ export class UserService {
     );
   }
 
-  async userNeighborhoodRegistration(user_id: string) {
+  async userNeighborhoodRegistration(
+    user_id: string,
+    param: { neighborhood: string },
+  ) {
     const conn = getConnection();
 
-    try {
-      await conn.query(``);
+    const sql = `INSERT INTO USER_NEIGHBORHOOD(USER_ID, NGHBR_NAME, INSERT_DT, INSERT_ID)
+                 VALUES(?,?,NOW(),?)`;
+    const params = [user_id, param.neighborhood, user_id];
 
-      this.logger.verbose(`User ${user_id} 회원 동네 등록 성공`);
-      return {
-        statusCode: 200,
-        message: '회원 동네 등록 성공',
-      };
+    try {
+      const [count] = await conn.query(
+        `SELECT COUNT(*) AS count FROM USER_NEIGHBORHOOD WHERE USER_ID='${user_id}' AND USE_YN='Y'`,
+      );
+      if (count.count < 3) {
+        await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='N' 
+                          WHERE USER_ID='${user_id}' AND USE_YN='Y'`);
+        await conn.query(sql, params);
+        this.logger.verbose(`User ${user_id} 회원 동네 등록 성공`);
+        return {
+          statusCode: 200,
+          message: '회원 동네 등록 성공',
+        };
+      }
+      throw new HttpException('등록 갯수 초과', HttpStatus.BAD_REQUEST);
     } catch (error) {
+      if (error.response === '등록 갯수 초과') {
+        this.logger.verbose(`User ${user_id} 회원 동네 등록 갯수 초과`);
+        throw new HttpException(
+          '회원 동네 등록 갯수 초과',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       this.logger.verbose(`User ${user_id} 회원 동네 등록 실패\n ${error}`);
       throw new HttpException('회원 동네 등록 실패', HttpStatus.BAD_REQUEST);
     }

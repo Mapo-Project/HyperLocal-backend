@@ -19,6 +19,7 @@ import {
   ApiConsumes,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -27,6 +28,7 @@ import {
   NickNameDuplicateOutputDto,
 } from './dto/user.duplicate.dto';
 import { UserLogoutOutputDto } from './dto/user.logout.dto';
+import { NeighborhoodRegistrationOutputDto } from './dto/user.neighborhood.dto';
 import {
   ModifyProfileDetailInputDto,
   ModifyProfileDetailOutputDto,
@@ -222,17 +224,20 @@ export class UserController {
   }
 
   //회원 동네 등록
-  @Post('/neighborhood/registration')
+  @Post('/neighborhood/registration:neighborhood')
   @ApiOperation({
     summary: '회원 동네 등록 API(완료)',
     description: '회원 동네 등록 입니다. 토큰 값 필수!',
   })
-  @ApiBody({
+  @ApiParam({
+    name: 'neighborhood',
+    example: '성산동',
     description: '등록할 동네 주소',
   })
   @ApiResponse({
     status: 201,
     description: '회원 동네 등록 성공',
+    type: NeighborhoodRegistrationOutputDto,
   })
   @ApiResponse({
     status: 400,
@@ -244,8 +249,11 @@ export class UserController {
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  async userNeighborhoodRegistration(@Req() req) {
-    return await this.userService.userNeighborhoodRegistration(req.user);
+  async userNeighborhoodRegistration(
+    @Req() req,
+    @Param() param: { neighborhood: string },
+  ) {
+    return await this.userService.userNeighborhoodRegistration(req.user, param);
   }
 
   //회원 로그아웃
