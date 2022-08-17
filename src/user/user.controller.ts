@@ -28,7 +28,10 @@ import {
   NickNameDuplicateOutputDto,
 } from './dto/user.duplicate.dto';
 import { UserLogoutOutputDto } from './dto/user.logout.dto';
-import { NeighborhoodRegistrationOutputDto } from './dto/user.neighborhood.dto';
+import {
+  NeighborhoodRegistrationOutputDto,
+  NeighborhoodSelectOutputDto,
+} from './dto/user.neighborhood.dto';
 import {
   ModifyProfileDetailInputDto,
   ModifyProfileDetailOutputDto,
@@ -252,8 +255,41 @@ export class UserController {
   async userNeighborhoodRegistration(
     @Req() req,
     @Param() param: { neighborhood: string },
-  ) {
+  ): Promise<NeighborhoodRegistrationOutputDto> {
     return await this.userService.userNeighborhoodRegistration(req.user, param);
+  }
+
+  //회원 동네 선택
+  @Post('/neighborhood/select:selectId')
+  @ApiOperation({
+    summary: '회원 동네 선택 API(완료)',
+    description: '회원 동네 선택 입니다. 토큰 값 필수!',
+  })
+  @ApiParam({
+    name: 'selectId',
+    example: 1,
+    description: '선택할 동네 아이디',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '회원 동네 선택 성공',
+    type: NeighborhoodSelectOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '회원 동네 선택 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async userNeighborhoodSelect(
+    @Req() req,
+    @Param() param: { selectId: number },
+  ) {
+    return await this.userService.userNeighborhoodSelect(req.user, param);
   }
 
   //회원 로그아웃

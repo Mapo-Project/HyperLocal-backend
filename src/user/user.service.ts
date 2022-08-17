@@ -12,6 +12,7 @@ import {
   NickNameDuplicateOutputDto,
 } from './dto/user.duplicate.dto';
 import { UserLogoutOutputDto } from './dto/user.logout.dto';
+import { NeighborhoodRegistrationOutputDto } from './dto/user.neighborhood.dto';
 import {
   ModifyProfileDetailInputDto,
   ModifyProfileDetailOutputDto,
@@ -179,7 +180,7 @@ export class UserService {
   async userNeighborhoodRegistration(
     user_id: string,
     param: { neighborhood: string },
-  ) {
+  ): Promise<NeighborhoodRegistrationOutputDto> {
     const conn = getConnection();
 
     const sql = `INSERT INTO USER_NEIGHBORHOOD(USER_ID, NGHBR_NAME, INSERT_DT, INSERT_ID)
@@ -196,7 +197,7 @@ export class UserService {
         await conn.query(sql, params);
         this.logger.verbose(`User ${user_id} 회원 동네 등록 성공`);
         return {
-          statusCode: 200,
+          statusCode: 201,
           message: '회원 동네 등록 성공',
         };
       }
@@ -211,6 +212,34 @@ export class UserService {
       }
       this.logger.verbose(`User ${user_id} 회원 동네 등록 실패\n ${error}`);
       throw new HttpException('회원 동네 등록 실패', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async userNeighborhoodSelect(user_id: string, param: { selectId: number }) {
+    const conn = getConnection();
+
+    try {
+      const [found] =
+        await conn.query(`SELECT USER_NGHBR_ID AS id FROM USER_NEIGHBORHOOD 
+                          WHERE USER_ID='${user_id}' AND USER_NGHBR_ID='${param.selectId}' AND USE_YN='Y'`);
+
+      if (found) {
+        await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+        WHERE USER_ID='${user_id}' AND SLCTD_NGHBR_YN='Y' AND USE_YN='Y'`);
+
+        await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+        WHERE USER_ID='${user_id}' AND USE_YN='Y' AND USER_NGHBR_ID=${param.selectId}`);
+
+        this.logger.verbose(`User ${user_id} 회원 동네 선택 성공`);
+        return {
+          statusCode: 201,
+          message: '회원 동네 선택 성공',
+        };
+      }
+      throw new HttpException('회원 동네 선택 실패', HttpStatus.BAD_REQUEST);
+    } catch (error) {
+      this.logger.verbose(`User ${user_id} 회원 동네 선택 실패\n ${error}`);
+      throw new HttpException('회원 동네 선택 실패', HttpStatus.BAD_REQUEST);
     }
   }
 

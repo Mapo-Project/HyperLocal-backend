@@ -14,3 +14,18 @@ export class NeighborhoodRegistrationOutputDto {
   })
   message: string;
 }
+
+//회원 동네 선택 Output 데이터
+export class NeighborhoodSelectOutputDto {
+  @ApiProperty({
+    example: 201,
+    description: '상태코드',
+  })
+  statusCode: number;
+
+  @ApiProperty({
+    example: '회원 동네 선택 성공',
+    description: '설명',
+  })
+  message: string;
+}
