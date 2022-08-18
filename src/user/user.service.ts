@@ -12,7 +12,11 @@ import {
   NickNameDuplicateOutputDto,
 } from './dto/user.duplicate.dto';
 import { UserLogoutOutputDto } from './dto/user.logout.dto';
-import { NeighborhoodRegistrationOutputDto } from './dto/user.neighborhood.dto';
+import {
+  NeighborhoodChoiceOutputDto,
+  NeighborhoodRegistrationOutputDto,
+  NeighborhoodSelectOutputDto,
+} from './dto/user.neighborhood.dto';
 import {
   ModifyProfileDetailInputDto,
   ModifyProfileDetailOutputDto,
@@ -215,7 +219,10 @@ export class UserService {
     }
   }
 
-  async userNeighborhoodSelect(user_id: string, param: { selectId: number }) {
+  async userNeighborhoodChoice(
+    user_id: string,
+    param: { selectId: number },
+  ): Promise<NeighborhoodChoiceOutputDto> {
     const conn = getConnection();
 
     try {
@@ -240,6 +247,33 @@ export class UserService {
     } catch (error) {
       this.logger.verbose(`User ${user_id} 회원 동네 선택 실패\n ${error}`);
       throw new HttpException('회원 동네 선택 실패', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getUserNeighborhood(
+    user_id: string,
+  ): Promise<NeighborhoodSelectOutputDto> {
+    const conn = getConnection();
+
+    try {
+      const [count] =
+        await conn.query(`SELECT COUNT(*) AS count FROM USER_NEIGHBORHOOD
+                          WHERE USER_ID='${user_id}' AND USE_YN='Y'`);
+      const found =
+        await conn.query(`SELECT USER_NGHBR_ID AS neighborhoodId, NGHBR_NAME AS neighborhoodName, SLCTD_NGHBR_YN AS choiceYN 
+                          FROM USER_NEIGHBORHOOD
+                          WHERE USER_ID='${user_id}' AND USE_YN='Y'`);
+
+      this.logger.verbose(`User ${user_id} 회원 동네 조회 성공`);
+      return {
+        statusCode: 200,
+        message: '회원 동네 조회 성공',
+        count: count.count,
+        data: found,
+      };
+    } catch (error) {
+      this.logger.verbose(`User ${user_id} 회원 동네 조회 실패\n ${error}`);
+      throw new HttpException('회원 동네 조회 실패', HttpStatus.BAD_REQUEST);
     }
   }
 

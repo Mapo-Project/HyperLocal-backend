@@ -37,10 +37,13 @@ export class ProfileDetailOutputDto {
 export class ProfileDetailDto {
   @ApiProperty({ example: 'name', description: '이름' })
   nickname: string;
+
   @ApiProperty({ example: 'email@secondLife.com', description: '이메일' })
   email: string;
+
   @ApiProperty({ example: '01033337777', description: '휴대폰 번호' })
   phoneNum: string;
+
   @ApiProperty({ example: 'img', description: '프로필사진' })
   profileImg: string;
 }

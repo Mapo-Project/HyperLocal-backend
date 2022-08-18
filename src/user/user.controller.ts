@@ -29,6 +29,7 @@ import {
 } from './dto/user.duplicate.dto';
 import { UserLogoutOutputDto } from './dto/user.logout.dto';
 import {
+  NeighborhoodChoiceOutputDto,
   NeighborhoodRegistrationOutputDto,
   NeighborhoodSelectOutputDto,
 } from './dto/user.neighborhood.dto';
@@ -273,7 +274,7 @@ export class UserController {
   @ApiResponse({
     status: 201,
     description: '회원 동네 선택 성공',
-    type: NeighborhoodSelectOutputDto,
+    type: NeighborhoodChoiceOutputDto,
   })
   @ApiResponse({
     status: 400,
@@ -285,11 +286,35 @@ export class UserController {
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  async userNeighborhoodSelect(
+  async userNeighborhoodChoice(
     @Req() req,
     @Param() param: { selectId: number },
-  ) {
-    return await this.userService.userNeighborhoodSelect(req.user, param);
+  ): Promise<NeighborhoodChoiceOutputDto> {
+    return await this.userService.userNeighborhoodChoice(req.user, param);
+  }
+
+  //회원 동네 조회
+  @Get('/neighborhood/select')
+  @ApiOperation({
+    summary: '회원 동네 조회 API(완료)',
+    description: '회원 동네 조회 입니다. 토큰 값 필수!',
+  })
+  @ApiOkResponse({
+    description: '회원 동네 조회 성공',
+    type: NeighborhoodSelectOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '회원 동네 조회 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async getUserNeighborhood(@Req() req): Promise<NeighborhoodSelectOutputDto> {
+    return await this.userService.getUserNeighborhood(req.user);
   }
 
   //회원 로그아웃
