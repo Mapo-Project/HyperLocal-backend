@@ -30,6 +30,7 @@ import {
 import { UserLogoutOutputDto } from './dto/user.logout.dto';
 import {
   NeighborhoodChoiceOutputDto,
+  NeighborhoodDeleteOutputDto,
   NeighborhoodRegistrationOutputDto,
   NeighborhoodSelectOutputDto,
 } from './dto/user.neighborhood.dto';
@@ -261,7 +262,7 @@ export class UserController {
   }
 
   //회원 동네 선택
-  @Post('/neighborhood/select:selectId')
+  @Post('/neighborhood/choice:selectId')
   @ApiOperation({
     summary: '회원 동네 선택 API(완료)',
     description: '회원 동네 선택 입니다. 토큰 값 필수!',
@@ -315,6 +316,38 @@ export class UserController {
   @UseGuards(AuthGuard())
   async getUserNeighborhood(@Req() req): Promise<NeighborhoodSelectOutputDto> {
     return await this.userService.getUserNeighborhood(req.user);
+  }
+
+  //회원 동네 삭제
+  @Delete('/neighborhood:selectId')
+  @ApiOperation({
+    summary: '회원 동네 삭제 API(완료)',
+    description: '회원 동네 삭제 입니다. 토큰 값 필수!',
+  })
+  @ApiParam({
+    name: 'selectId',
+    example: 1,
+    description: '삭제할 동네 아이디',
+  })
+  @ApiOkResponse({
+    description: '회원 동네 삭제 성공',
+    type: NeighborhoodDeleteOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '회원 동네 삭제 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async userNeighborhoodDelete(
+    @Req() req,
+    @Param() param: { selectId: number },
+  ): Promise<NeighborhoodDeleteOutputDto> {
+    return await this.userService.userNeighborhoodDelete(req.user, param);
   }
 
   //회원 로그아웃

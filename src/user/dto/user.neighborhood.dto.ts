@@ -65,3 +65,18 @@ export class NeighborhoodSelectOutputDto {
   @ApiProperty({ type: [NeighborhoodDto] })
   data: NeighborhoodDto;
 }
+
+//회원 동네 삭제 Output 데이터
+export class NeighborhoodDeleteOutputDto {
+  @ApiProperty({
+    example: 200,
+    description: '상태코드',
+  })
+  statusCode: number;
+
+  @ApiProperty({
+    example: '회원 동네 삭제 성공',
+    description: '설명',
+  })
+  message: string;
+}

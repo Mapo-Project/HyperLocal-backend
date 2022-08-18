@@ -14,6 +14,7 @@ import {
 import { UserLogoutOutputDto } from './dto/user.logout.dto';
 import {
   NeighborhoodChoiceOutputDto,
+  NeighborhoodDeleteOutputDto,
   NeighborhoodRegistrationOutputDto,
   NeighborhoodSelectOutputDto,
 } from './dto/user.neighborhood.dto';
@@ -39,7 +40,7 @@ export class UserService {
 
     const conn = getConnection();
     const [found] = await conn.query(
-      `SELECT NICKNAME FROM USER WHERE NICKNAME='${nickname}'`,
+      `SELECT NICKNAME FROM USER WHERE NICKNAME='${nickname}';`,
     );
 
     this.logger.verbose(`Nickname: ${nickname} 중복체크`);
@@ -64,7 +65,7 @@ export class UserService {
 
     const conn = getConnection();
     const [found] = await conn.query(
-      `SELECT USER_ID FROM USER WHERE USER_ID='${user_id}' AND STATUS='P' AND VERIFY='Y'`,
+      `SELECT USER_ID FROM USER WHERE USER_ID='${user_id}' AND STATUS='P' AND VERIFY='Y';`,
     );
 
     if (!found) {
@@ -72,7 +73,7 @@ export class UserService {
         await conn.query(
           `UPDATE USER SET NICKNAME='${nickname}', PHONE_NUM='${phoneNum}', EMAIL='${email}', 
            VERIFY='Y', UPDATE_DT=NOW( ), UPDATE_ID='${user_id}'
-           WHERE USER_ID='${user_id}' AND STATUS='P'`,
+           WHERE USER_ID='${user_id}' AND STATUS='P';`,
         );
         this.logger.verbose(`User ${user_id} 회원 프로필 추가정보 등록 성공`);
         return {
@@ -101,7 +102,7 @@ export class UserService {
     const conn = getConnection();
     const [user] = await conn.query(
       `SELECT NICKNAME AS nickname, EMAIL AS email, PHONE_NUM AS phoneNum, PROFILE_IMG AS profileImg, VERIFY AS verify FROM USER 
-       WHERE USER_ID='${user_id}'AND STATUS='P'`,
+       WHERE USER_ID='${user_id}'AND STATUS='P';`,
     );
     if (user) {
       if (user.verify === 'Y') {
@@ -135,7 +136,7 @@ export class UserService {
     try {
       await conn.query(
         `UPDATE USER SET NICKNAME='${nickname}', EMAIL='${email}', UPDATE_DT=NOW(), UPDATE_ID='${user_id}'
-         WHERE USER_ID='${user_id}' AND VERIFY='Y' AND STATUS='P' `,
+         WHERE USER_ID='${user_id}' AND VERIFY='Y' AND STATUS='P';`,
       );
 
       this.logger.verbose(`User ${user_id} 회원 프로필 수정 성공`);
@@ -164,7 +165,7 @@ export class UserService {
 
       await conn.query(
         `UPDATE USER SET PROFILE_IMG='${generatedFile}', UPDATE_DT=NOW(), UPDATE_ID='${user_id}'
-          WHERE USER_ID='${user_id}' AND VERIFY='Y' AND STATUS='P' `,
+         WHERE USER_ID='${user_id}' AND VERIFY='Y' AND STATUS='P';`,
       );
 
       this.logger.verbose(`User ${user_id} 회원 프로필 이미지 수정 성공`);
@@ -188,16 +189,16 @@ export class UserService {
     const conn = getConnection();
 
     const sql = `INSERT INTO USER_NEIGHBORHOOD(USER_ID, NGHBR_NAME, INSERT_DT, INSERT_ID)
-                 VALUES(?,?,NOW(),?)`;
+                 VALUES(?,?,NOW(),?);`;
     const params = [user_id, param.neighborhood, user_id];
 
     try {
       const [count] = await conn.query(
-        `SELECT COUNT(*) AS count FROM USER_NEIGHBORHOOD WHERE USER_ID='${user_id}' AND USE_YN='Y'`,
+        `SELECT COUNT(*) AS count FROM USER_NEIGHBORHOOD WHERE USER_ID='${user_id}' AND USE_YN='Y';`,
       );
       if (count.count < 3) {
         await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='N' 
-                          WHERE USER_ID='${user_id}' AND USE_YN='Y'`);
+                          WHERE USER_ID='${user_id}' AND USE_YN='Y';`);
         await conn.query(sql, params);
         this.logger.verbose(`User ${user_id} 회원 동네 등록 성공`);
         return {
@@ -228,14 +229,14 @@ export class UserService {
     try {
       const [found] =
         await conn.query(`SELECT USER_NGHBR_ID AS id FROM USER_NEIGHBORHOOD 
-                          WHERE USER_ID='${user_id}' AND USER_NGHBR_ID='${param.selectId}' AND USE_YN='Y'`);
+                          WHERE USER_ID='${user_id}' AND USER_NGHBR_ID='${param.selectId}' AND USE_YN='Y';`);
 
       if (found) {
         await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
-        WHERE USER_ID='${user_id}' AND SLCTD_NGHBR_YN='Y' AND USE_YN='Y'`);
+                          WHERE USER_ID='${user_id}' AND SLCTD_NGHBR_YN='Y' AND USE_YN='Y';`);
 
         await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
-        WHERE USER_ID='${user_id}' AND USE_YN='Y' AND USER_NGHBR_ID=${param.selectId}`);
+                          WHERE USER_ID='${user_id}' AND USE_YN='Y' AND USER_NGHBR_ID=${param.selectId};`);
 
         this.logger.verbose(`User ${user_id} 회원 동네 선택 성공`);
         return {
@@ -243,8 +244,18 @@ export class UserService {
           message: '회원 동네 선택 성공',
         };
       }
-      throw new HttpException('회원 동네 선택 실패', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        '유효하지 않는 동네 아이디',
+        HttpStatus.BAD_REQUEST,
+      );
     } catch (error) {
+      if (error.response === '유효하지 않는 동네 아이디') {
+        this.logger.verbose(`User ${user_id} 유효하지 않는 동네 아이디 요청`);
+        throw new HttpException(
+          '유효하지 않는 동네 아이디 요청',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       this.logger.verbose(`User ${user_id} 회원 동네 선택 실패\n ${error}`);
       throw new HttpException('회원 동네 선택 실패', HttpStatus.BAD_REQUEST);
     }
@@ -258,11 +269,11 @@ export class UserService {
     try {
       const [count] =
         await conn.query(`SELECT COUNT(*) AS count FROM USER_NEIGHBORHOOD
-                          WHERE USER_ID='${user_id}' AND USE_YN='Y'`);
+                          WHERE USER_ID='${user_id}' AND USE_YN='Y';`);
       const found =
         await conn.query(`SELECT USER_NGHBR_ID AS neighborhoodId, NGHBR_NAME AS neighborhoodName, SLCTD_NGHBR_YN AS choiceYN 
                           FROM USER_NEIGHBORHOOD
-                          WHERE USER_ID='${user_id}' AND USE_YN='Y'`);
+                          WHERE USER_ID='${user_id}' AND USE_YN='Y';`);
 
       this.logger.verbose(`User ${user_id} 회원 동네 조회 성공`);
       return {
@@ -277,13 +288,66 @@ export class UserService {
     }
   }
 
+  async userNeighborhoodDelete(
+    user_id: string,
+    param: { selectId: number },
+  ): Promise<NeighborhoodDeleteOutputDto> {
+    const conn = getConnection();
+
+    try {
+      const [found] =
+        await conn.query(`SELECT USER_NGHBR_ID AS id, SLCTD_NGHBR_YN AS choice_id FROM USER_NEIGHBORHOOD 
+                          WHERE USER_ID='${user_id}' AND USER_NGHBR_ID='${param.selectId}' AND USE_YN='Y';`);
+
+      if (found) {
+        if (found.choice_id === 'Y') {
+          const [neighborhood_id] = await conn.query(`SELECT USER_NGHBR_ID AS id
+                                                      FROM USER_NEIGHBORHOOD
+                                                      WHERE USER_ID='${user_id}' AND SLCTD_NGHBR_YN='N' AND USE_YN='Y'
+                                                      ORDER BY USER_NGHBR_ID DESC
+                                                      LIMIT 1`);
+
+          await conn.query(
+            `UPDATE USER_NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+             WHERE USER_NGHBR_ID=${param.selectId};` +
+              `UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+               WHERE USER_NGHBR_ID=${neighborhood_id.id};`,
+          );
+        } else {
+          await conn.query(`UPDATE USER_NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+                            WHERE USER_NGHBR_ID=${param.selectId};`);
+        }
+
+        this.logger.verbose(`User ${user_id} 회원 동네 삭제 성공`);
+        return {
+          statusCode: 200,
+          message: '회원 동네 삭제 성공',
+        };
+      }
+      throw new HttpException(
+        '유효하지 않는 동네 아이디',
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (error) {
+      if (error.response === '유효하지 않는 동네 아이디') {
+        this.logger.verbose(`User ${user_id} 유효하지 않는 동네 아이디 요청`);
+        throw new HttpException(
+          '유효하지 않는 동네 아이디 요청',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      this.logger.verbose(`User ${user_id} 회원 동네 삭제 실패\n ${error}`);
+      throw new HttpException('회원 동네 삭제 실패', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   async userLogout(user_id: string): Promise<UserLogoutOutputDto> {
     const conn = getConnection();
 
     try {
       await conn.query(
         `UPDATE USER SET REFRESH_TOKEN=NULL, UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
-         WHERE USER_ID='${user_id}' AND status='P'`,
+         WHERE USER_ID='${user_id}' AND status='P';`,
       );
 
       this.logger.verbose(`User ${user_id} 회원 로그아웃 성공`);
@@ -304,7 +368,7 @@ export class UserService {
       await conn.query(
         `UPDATE USER SET STATUS='D', NICKNAME=NULL, EMAIL=NULL, PHONE_NUM=NULL,
          UPDATE_DT=NOW(), UPDATE_ID='${user_id}', PROFILE_IMG=NULL, REFRESH_TOKEN=NULL 
-         WHERE USER_ID='${user_id}' AND STATUS='P'`,
+         WHERE USER_ID='${user_id}' AND STATUS='P';`,
       );
 
       this.logger.verbose(`User ${user_id} 회원 탈퇴 성공`);

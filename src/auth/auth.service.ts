@@ -26,7 +26,7 @@ export class AuthService {
 
     const conn = getConnection();
     const [found] = await conn.query(
-      `SELECT SOCIAL_ID FROM USER WHERE SOCIAL_ID='${social_id}' AND STATUS='P'`,
+      `SELECT SOCIAL_ID FROM USER WHERE SOCIAL_ID='${social_id}' AND STATUS='P';`,
     );
 
     if (!found) {
@@ -40,7 +40,7 @@ export class AuthService {
       });
 
       const sql = `INSERT INTO USER(USER_ID, ROLE_ID, SOCIAL_ID, EMAIL, VERIFY, INSERT_DT, INSERT_ID, PROFILE_IMG, REFRESH_TOKEN) 
-                   VALUES(?,?,?,?,?,NOW(),?,?,?)`;
+                   VALUES(?,?,?,?,?,NOW(),?,?,?);`;
       const params = [
         user_id,
         role_id,
@@ -64,7 +64,7 @@ export class AuthService {
     }
 
     const [user] = await conn.query(
-      `SELECT USER_ID FROM USER WHERE SOCIAL_ID='${social_id}' AND STATUS='P'`,
+      `SELECT USER_ID FROM USER WHERE SOCIAL_ID='${social_id}' AND STATUS='P';`,
     );
     const user_id = user.USER_ID;
     const payload = { user_id };
@@ -77,11 +77,11 @@ export class AuthService {
 
     await conn.query(
       `UPDATE USER SET REFRESH_TOKEN='${refreshToken}', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
-       WHERE USER_ID='${user_id}' AND STATUS='P'`,
+       WHERE USER_ID='${user_id}' AND STATUS='P';`,
     );
 
     const [user_verify] = await conn.query(
-      `SELECT VERIFY FROM USER WHERE USER_ID='${user_id}' AND STATUS='P'`,
+      `SELECT VERIFY FROM USER WHERE USER_ID='${user_id}' AND STATUS='P';`,
     );
 
     return {
@@ -100,7 +100,7 @@ export class AuthService {
     const conn = getConnection();
 
     const [found] = await conn.query(
-      `SELECT USER_ID FROM USER WHERE REFRESH_TOKEN='${refreshToken}' AND STATUS='P'`,
+      `SELECT USER_ID FROM USER WHERE REFRESH_TOKEN='${refreshToken}' AND STATUS='P';`,
     );
 
     if (found) {
