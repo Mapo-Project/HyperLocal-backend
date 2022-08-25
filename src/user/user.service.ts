@@ -188,16 +188,26 @@ export class UserService {
   ): Promise<NeighborhoodRegistrationOutputDto> {
     const conn = getConnection();
 
-    const sql = `INSERT INTO USER_NEIGHBORHOOD(USER_ID, NGHBR_NAME, INSERT_DT, INSERT_ID)
+    const sql = `INSERT INTO NEIGHBORHOOD(USER_ID, NGHBR_NAME, INSERT_DT, INSERT_ID)
                  VALUES(?,?,NOW(),?);`;
     const params = [user_id, param.neighborhood, user_id];
 
+    const [found] = await conn.query(`SELECT NGHBR_ID FROM NEIGHBORHOOD 
+                                      WHERE NGHBR_NAME='${param.neighborhood}' AND USE_YN='Y';`);
+    if (found) {
+      this.logger.verbose(`User ${user_id} 이미 등록되어 있는 동네`);
+      throw new HttpException(
+        '이미 등록되어 있는 동네입니다.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     try {
       const [count] = await conn.query(
-        `SELECT COUNT(*) AS count FROM USER_NEIGHBORHOOD WHERE USER_ID='${user_id}' AND USE_YN='Y';`,
+        `SELECT COUNT(*) AS count FROM NEIGHBORHOOD WHERE USER_ID='${user_id}' AND USE_YN='Y';`,
       );
       if (count.count < 3) {
-        await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='N' 
+        await conn.query(`UPDATE NEIGHBORHOOD SET SLCTD_NGHBR_YN='N' 
                           WHERE USER_ID='${user_id}' AND USE_YN='Y';`);
         await conn.query(sql, params);
         this.logger.verbose(`User ${user_id} 회원 동네 등록 성공`);
@@ -227,16 +237,15 @@ export class UserService {
     const conn = getConnection();
 
     try {
-      const [found] =
-        await conn.query(`SELECT USER_NGHBR_ID AS id FROM USER_NEIGHBORHOOD 
-                          WHERE USER_ID='${user_id}' AND USER_NGHBR_ID='${param.selectId}' AND USE_YN='Y';`);
+      const [found] = await conn.query(`SELECT NGHBR_ID AS id FROM NEIGHBORHOOD 
+                          WHERE USER_ID='${user_id}' AND NGHBR_ID='${param.selectId}' AND USE_YN='Y';`);
 
       if (found) {
-        await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+        await conn.query(`UPDATE NEIGHBORHOOD SET SLCTD_NGHBR_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
                           WHERE USER_ID='${user_id}' AND SLCTD_NGHBR_YN='Y' AND USE_YN='Y';`);
 
-        await conn.query(`UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
-                          WHERE USER_ID='${user_id}' AND USE_YN='Y' AND USER_NGHBR_ID=${param.selectId};`);
+        await conn.query(`UPDATE NEIGHBORHOOD SET SLCTD_NGHBR_YN='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+                          WHERE USER_ID='${user_id}' AND USE_YN='Y' AND NGHBR_ID=${param.selectId};`);
 
         this.logger.verbose(`User ${user_id} 회원 동네 선택 성공`);
         return {
@@ -268,11 +277,11 @@ export class UserService {
 
     try {
       const [count] =
-        await conn.query(`SELECT COUNT(*) AS count FROM USER_NEIGHBORHOOD
+        await conn.query(`SELECT COUNT(*) AS count FROM NEIGHBORHOOD
                           WHERE USER_ID='${user_id}' AND USE_YN='Y';`);
       const found =
-        await conn.query(`SELECT USER_NGHBR_ID AS neighborhoodId, NGHBR_NAME AS neighborhoodName, SLCTD_NGHBR_YN AS choiceYN 
-                          FROM USER_NEIGHBORHOOD
+        await conn.query(`SELECT NGHBR_ID AS neighborhoodId, NGHBR_NAME AS neighborhoodName, SLCTD_NGHBR_YN AS choiceYN 
+                          FROM NEIGHBORHOOD
                           WHERE USER_ID='${user_id}' AND USE_YN='Y';`);
 
       this.logger.verbose(`User ${user_id} 회원 동네 조회 성공`);
@@ -296,26 +305,26 @@ export class UserService {
 
     try {
       const [found] =
-        await conn.query(`SELECT USER_NGHBR_ID AS id, SLCTD_NGHBR_YN AS choice_id FROM USER_NEIGHBORHOOD 
-                          WHERE USER_ID='${user_id}' AND USER_NGHBR_ID='${param.selectId}' AND USE_YN='Y';`);
+        await conn.query(`SELECT NGHBR_ID AS id, SLCTD_NGHBR_YN AS choice_id FROM NEIGHBORHOOD 
+                          WHERE USER_ID='${user_id}' AND NGHBR_ID='${param.selectId}' AND USE_YN='Y';`);
 
       if (found) {
         if (found.choice_id === 'Y') {
-          const [neighborhood_id] = await conn.query(`SELECT USER_NGHBR_ID AS id
-                                                      FROM USER_NEIGHBORHOOD
+          const [neighborhood_id] = await conn.query(`SELECT NGHBR_ID AS id
+                                                      FROM NEIGHBORHOOD
                                                       WHERE USER_ID='${user_id}' AND SLCTD_NGHBR_YN='N' AND USE_YN='Y'
-                                                      ORDER BY USER_NGHBR_ID DESC
+                                                      ORDER BY NGHBR_ID DESC
                                                       LIMIT 1`);
 
           await conn.query(
-            `UPDATE USER_NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
-             WHERE USER_NGHBR_ID=${param.selectId};` +
-              `UPDATE USER_NEIGHBORHOOD SET SLCTD_NGHBR_YN='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
-               WHERE USER_NGHBR_ID=${neighborhood_id.id};`,
+            `UPDATE NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+             WHERE NGHBR_ID=${param.selectId};` +
+              `UPDATE NEIGHBORHOOD SET SLCTD_NGHBR_YN='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+               WHERE NGHBR_ID=${neighborhood_id.id};`,
           );
         } else {
-          await conn.query(`UPDATE USER_NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
-                            WHERE USER_NGHBR_ID=${param.selectId};`);
+          await conn.query(`UPDATE NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+                            WHERE NGHBR_ID=${param.selectId};`);
         }
 
         this.logger.verbose(`User ${user_id} 회원 동네 삭제 성공`);

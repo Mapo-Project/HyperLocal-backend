@@ -246,7 +246,8 @@ export class UserController {
   })
   @ApiResponse({
     status: 400,
-    description: '회원 동네 등록 실패',
+    description:
+      '회원 동네 등록 실패 || 이미 등록되어 있는 동네 || 회원 동네 등록 갯수 초과',
   })
   @ApiResponse({
     status: 401,
@@ -279,7 +280,7 @@ export class UserController {
   })
   @ApiResponse({
     status: 400,
-    description: '회원 동네 선택 실패',
+    description: '회원 동네 선택 실패 || 유효하지 않는 동네 아이디',
   })
   @ApiResponse({
     status: 401,
@@ -335,7 +336,7 @@ export class UserController {
   })
   @ApiResponse({
     status: 400,
-    description: '회원 동네 삭제 실패',
+    description: '회원 동네 삭제 실패 || 유효하지 않는 동네 아이디',
   })
   @ApiResponse({
     status: 401,
