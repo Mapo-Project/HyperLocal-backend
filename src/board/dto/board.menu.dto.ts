@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class BoardMenuDto {
-  @ApiProperty({ description: '카테고리', example: ['카테고리'] })
+  @ApiProperty({ example: ['카테고리'], description: '카테고리' })
   category: [];
-  @ApiProperty({ description: '공유방법', example: ['공유방법'] })
+  @ApiProperty({ example: ['공유방법'], description: '공유방법' })
   howShare: [];
 }
 

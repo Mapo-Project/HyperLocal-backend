@@ -33,6 +33,17 @@ export const multerOptions = {
 
         callback(null, uploadPath);
       }
+
+      if (fieldname === 'board') {
+        const uploadPath = 'upload/user/board';
+
+        if (!existsSync(uploadPath)) {
+          // upload 폴더가 존재하지 않을시, 생성합니다.
+          mkdirSync(uploadPath, { recursive: true });
+        }
+
+        callback(null, uploadPath);
+      }
     },
 
     filename: (request, file, callback) => {
@@ -48,5 +59,9 @@ export const createImageURL = (file): string => {
   // 파일이 저장되는 경로
   if (fieldname === 'profile') {
     return `${serverAddress}/upload/user/profile/${file.filename}`;
+  }
+
+  if (fieldname === 'board') {
+    return `${serverAddress}/upload/user/board/${file.filename}`;
   }
 };
