@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       entities: [], // 사용할 entity의 클래스명을 넣어둔다.
       synchronize: false, // false로 해두는 게 안전하다.
     }),
+    AuthModule,
+    UserModule,
   ],
 })
 export class AppModule {}
