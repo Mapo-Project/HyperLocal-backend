@@ -57,7 +57,7 @@ export class NeighborhoodSelectOutputDto {
   message: string;
 
   @ApiProperty({
-    example: '3',
+    example: '1',
     description: '회원 동네 갯수',
   })
   count: string;

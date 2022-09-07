@@ -193,7 +193,7 @@ export class UserService {
     const params = [user_id, param.neighborhood, user_id];
 
     const [found] = await conn.query(`SELECT NGHBR_ID FROM NEIGHBORHOOD 
-                                      WHERE NGHBR_NAME='${param.neighborhood}' AND USE_YN='Y';`);
+                                      WHERE USER_ID='${user_id}' AND NGHBR_NAME='${param.neighborhood}' AND USE_YN='Y';`);
     if (found) {
       this.logger.verbose(`User ${user_id} 이미 등록되어 있는 동네`);
       throw new HttpException(
@@ -305,22 +305,26 @@ export class UserService {
 
     try {
       const [found] =
-        await conn.query(`SELECT NGHBR_ID AS id, SLCTD_NGHBR_YN AS choice_id FROM NEIGHBORHOOD 
+        await conn.query(`SELECT NGHBR_ID AS id, SLCTD_NGHBR_YN AS choice_id, COUNT(*) AS count FROM NEIGHBORHOOD 
                           WHERE USER_ID='${user_id}' AND NGHBR_ID='${param.selectId}' AND USE_YN='Y';`);
 
       if (found) {
-        if (found.choice_id === 'Y') {
+        if (found.choice_id === 'Y' && found.count > 1) {
           const [neighborhood_id] = await conn.query(`SELECT NGHBR_ID AS id
                                                       FROM NEIGHBORHOOD
                                                       WHERE USER_ID='${user_id}' AND SLCTD_NGHBR_YN='N' AND USE_YN='Y'
                                                       ORDER BY NGHBR_ID DESC
                                                       LIMIT 1`);
-
           await conn.query(
             `UPDATE NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
              WHERE NGHBR_ID=${param.selectId};` +
               `UPDATE NEIGHBORHOOD SET SLCTD_NGHBR_YN='Y', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
                WHERE NGHBR_ID=${neighborhood_id.id};`,
+          );
+        } else if (found.choice_id === 'Y' && found.count == 1) {
+          await conn.query(
+            `UPDATE NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+             WHERE NGHBR_ID=${param.selectId};`,
           );
         } else {
           await conn.query(`UPDATE NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
