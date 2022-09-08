@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   UploadedFiles,
@@ -17,6 +18,7 @@ import {
   ApiConsumes,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -27,6 +29,7 @@ import {
   BoardRegisterInputDto,
   BoardRegisterOutputDto,
 } from './dto/board.register.dto';
+import { BoardSelectOutputDto } from './dto/board.select.dto';
 
 @ApiTags('게시판 API')
 @Controller('board')
@@ -53,7 +56,10 @@ export class BoardController {
 
   //게시판 등록
   @Post('/register')
-  @ApiOperation({ summary: '게시판 등록 API(완료)' })
+  @ApiOperation({
+    summary: '게시판 등록 API(완료)',
+    description: '게시판 등록 입니다. 토큰 값 필수!',
+  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     description: '게시판 등록',
@@ -84,11 +90,40 @@ export class BoardController {
     @UploadedFiles() files: File[],
     @Body(ValidationPipe)
     boardRegisterInputDto: BoardRegisterInputDto,
-  ) {
+  ): Promise<BoardRegisterOutputDto> {
     return await this.boardService.boardRegister(
       req.user,
       boardRegisterInputDto,
       files,
     );
+  }
+
+  //게시판 조회(동네)
+  @Get('neighborhood/select/:page')
+  @ApiOperation({
+    summary: '게시판 조회(동네)(검색-10개) API(완료)',
+    description: '게시판 조회(동네) 입니다. 토큰 값 필수!',
+  })
+  @ApiParam({
+    name: 'page',
+    example: 1,
+    description: '게시판 페이지 넘버',
+  })
+  @ApiOkResponse({
+    description: '게시판 조회 성공',
+    type: BoardSelectOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '게시판 조회 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async getNeighborhoodBoard(@Req() req, @Param() param: { page: number }) {
+    return await this.boardService.getNeighborhoodBoard(req.user, param.page);
   }
 }
