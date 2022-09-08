@@ -42,6 +42,16 @@ export class BoardService {
     }
   }
 
+  private async neighborhood(user_id: string) {
+    const conn = getConnection();
+    const [found] = await conn.query(`SELECT NGHBR_NAME
+                                FROM USER A JOIN NEIGHBORHOOD B ON A.USER_ID = B.USER_ID
+                                WHERE A.USER_ID='${user_id}'
+                                AND A.STATUS='P' AND B.SLCTD_NGHBR_YN='Y' AND B.USE_YN='Y';`);
+
+    return found.NGHBR_NAME;
+  }
+
   async boardRegister(
     user_id: string,
     boardRegisterInputDto: BoardRegisterInputDto,
@@ -63,12 +73,15 @@ export class BoardService {
     const conn = getConnection();
     const date = new Date();
 
-    const sql = `INSERT INTO NOTICE_BOARD(NOTICE_ID, USER_ID, CATEGORY, TITLE, DESCRIPTION, LINK, 
+    const neighborhood_name = await this.neighborhood(user_id);
+
+    const sql = `INSERT INTO NOTICE_BOARD(NOTICE_ID, USER_ID, NGHBR_NAME, CATEGORY, TITLE, DESCRIPTION, LINK, 
                  CONTAINER_YN, HOMEMADE_YN, PRICE, HOW_SHARE, PERSONNEL, DEADLINE, INSERT_DT, INSERT_ID) 
-                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,NOW(),?);`;
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),?);`;
     const params = [
       notice_id,
       user_id,
+      neighborhood_name,
       category,
       title,
       description,
