@@ -2,7 +2,10 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { createImageURL } from 'src/user/multerOptions';
 import { getConnection } from 'typeorm';
 import { SelectBoardMenuOutputDto } from './dto/board.menu.dto';
-import { BoardRegisterInputDto } from './dto/board.register.dto';
+import {
+  BoardRegisterInputDto,
+  BoardRegisterOutputDto,
+} from './dto/board.register.dto';
 import uuidRandom from './uuidRandom';
 
 @Injectable()
@@ -44,19 +47,20 @@ export class BoardService {
 
   private async neighborhood(user_id: string) {
     const conn = getConnection();
-    const [found] = await conn.query(`SELECT NGHBR_NAME
-                                FROM USER A JOIN NEIGHBORHOOD B ON A.USER_ID = B.USER_ID
-                                WHERE A.USER_ID='${user_id}'
-                                AND A.STATUS='P' AND B.SLCTD_NGHBR_YN='Y' AND B.USE_YN='Y';`);
+    const [found] = await conn.query(`
+    SELECT B.NGHBR_NAME AS nghbr_name
+    FROM USER A JOIN NEIGHBORHOOD B ON A.USER_ID = B.USER_ID
+    WHERE A.USER_ID='${user_id}'
+    AND A.STATUS='P' AND B.SLCTD_NGHBR_YN='Y' AND B.USE_YN='Y';`);
 
-    return found.NGHBR_NAME;
+    return found.nghbr_name;
   }
 
   async boardRegister(
     user_id: string,
     boardRegisterInputDto: BoardRegisterInputDto,
     files: File[],
-  ) {
+  ): Promise<BoardRegisterOutputDto> {
     const notice_id = uuidRandom();
     const {
       category,
@@ -72,7 +76,7 @@ export class BoardService {
     } = boardRegisterInputDto;
     const conn = getConnection();
     const date = new Date();
-
+    const arr = [];
     const neighborhood_name = await this.neighborhood(user_id);
 
     const sql = `INSERT INTO NOTICE_BOARD(NOTICE_ID, USER_ID, NGHBR_NAME, CATEGORY, TITLE, DESCRIPTION, LINK, 
@@ -95,6 +99,16 @@ export class BoardService {
       user_id,
     ];
 
+    const img_sql = `INSERT INTO NOTICE_BOARD_IMG(NOTICE_ID, USER_ID, NOTICE_IMG, INSERT_DT, INSERT_ID) VALUES ?;`;
+    if (files.length) {
+      for (const file of files) {
+        arr.push([notice_id, user_id, createImageURL(file), date, notice_id]);
+      }
+    } else {
+      const board_img = process.env.BOARD_IMG_DEFAULT;
+      arr.push([notice_id, user_id, board_img, date, notice_id]);
+    }
+
     if (personnel < '2') {
       this.logger.verbose(`User ${user_id} 참여 인원은 2명 이상 필요`);
       throw new HttpException(
@@ -104,15 +118,9 @@ export class BoardService {
     }
 
     try {
-      if (files.length) {
-        const arr = [];
-        for (const file of files) {
-          arr.push([notice_id, createImageURL(file), date, notice_id]);
-        }
-        const img_sql = `INSERT INTO NOTICE_BOARD_IMG(NOTICE_ID, NOTICE_IMG, INSERT_DT, INSERT_ID) VALUES ?;`;
-        await conn.query(img_sql, [arr]);
-      }
       await conn.query(sql, params);
+
+      await conn.query(img_sql, [arr]);
 
       this.logger.verbose(`User ${user_id} 게시판 등록 성공`);
       return {
@@ -122,6 +130,58 @@ export class BoardService {
     } catch (error) {
       this.logger.verbose(`User ${user_id} 게시판 등록 성공 실패\n ${error}`);
       throw new HttpException('게시판 등록 성공 실패', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getNeighborhoodBoard(user_id: string, page: number) {
+    const conn = getConnection();
+    const neighborhood_name = await this.neighborhood(user_id);
+    const page_count = (page - 1) * 10;
+
+    try {
+      const board = await conn.query(`
+      SELECT A.NOTICE_ID, A.CATEGORY, A.TITLE, A.PRICE, A.PERSONNEL, A.DEADLINE, B.NOTICE_IMG
+      FROM NOTICE_BOARD A JOIN 
+      (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
+      FROM NOTICE_BOARD_IMG
+      WHERE USER_ID='${user_id}' AND USE_YN='Y'
+      GROUP BY NOTICE_ID) AS B 
+      ON A.NOTICE_ID = B.NOTICE_ID
+      WHERE A.USER_ID='${user_id}'
+      AND A.NGHBR_NAME='${neighborhood_name}' AND A.USE_YN='Y'
+      ORDER BY A.INSERT_DT
+      LIMIT 10 OFFSET ${page_count};`);
+
+      const [count] = await conn.query(`
+        SELECT COUNT(A.NOTICE_ID) AS count
+        FROM NOTICE_BOARD A JOIN 
+        (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
+        FROM NOTICE_BOARD_IMG
+        WHERE USER_ID='${user_id}' AND USE_YN='Y'
+        GROUP BY NOTICE_ID) AS B 
+        ON A.NOTICE_ID = B.NOTICE_ID
+        WHERE A.USER_ID='${user_id}'
+        AND A.NGHBR_NAME='${neighborhood_name}' AND A.USE_YN='Y';`);
+
+      if (board.length) {
+        this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
+        return {
+          statusCode: 200,
+          message: '게시판 조회 성공',
+          count: count.count,
+          data: board,
+        };
+      } else {
+        this.logger.verbose(`User ${user_id} 게시판 페이지 넘버 초과`);
+        return {
+          statusCode: 400,
+          message: '게시판 페이지 넘버 초과',
+        };
+      }
+    } catch (error) {
+      this.logger.error(`User ${user_id} 게시판 조회 실패
+        Error: ${error}`);
+      throw new HttpException('게시판 조회 실패', HttpStatus.BAD_REQUEST);
     }
   }
 }
