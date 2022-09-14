@@ -153,11 +153,10 @@ export class BoardService {
       FROM NOTICE_BOARD A JOIN 
       (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
       FROM NOTICE_BOARD_IMG
-      WHERE USER_ID='${user_id}' AND USE_YN='Y'
+      WHERE USE_YN='Y'
       GROUP BY NOTICE_ID) AS B 
       ON A.NOTICE_ID = B.NOTICE_ID
-      WHERE A.USER_ID='${user_id}'
-      AND A.NGHBR_NAME='${neighborhood_name}' AND A.USE_YN='Y'
+      WHERE A.NGHBR_NAME='${neighborhood_name}' AND A.USE_YN='Y'
       ORDER BY A.INSERT_DT
       LIMIT 10 OFFSET ${page_count};`);
 
@@ -166,11 +165,10 @@ export class BoardService {
         FROM NOTICE_BOARD A JOIN 
         (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
         FROM NOTICE_BOARD_IMG
-        WHERE USER_ID='${user_id}' AND USE_YN='Y'
+        WHERE USE_YN='Y'
         GROUP BY NOTICE_ID) AS B 
         ON A.NOTICE_ID = B.NOTICE_ID
-        WHERE A.USER_ID='${user_id}'
-        AND A.NGHBR_NAME='${neighborhood_name}' AND A.USE_YN='Y';`);
+        WHERE A.NGHBR_NAME='${neighborhood_name}' AND A.USE_YN='Y';`);
 
       if (board.length) {
         this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
@@ -216,11 +214,10 @@ export class BoardService {
       FROM NOTICE_BOARD A JOIN
       (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
       FROM NOTICE_BOARD_IMG
-      WHERE USER_ID='${user_id}' AND USE_YN='Y'
+      WHERE USE_YN='Y'
       GROUP BY NOTICE_ID) AS B
       ON A.NOTICE_ID = B.NOTICE_ID
-      WHERE A.USER_ID='${user_id}'
-      AND A.NGHBR_NAME='${neighborhood_name}' 
+      WHERE A.NGHBR_NAME='${neighborhood_name}' 
       AND A.CATEGORY='${category}' AND A.USE_YN='Y'
       ORDER BY A.INSERT_DT
       LIMIT 10 OFFSET ${page_count};`);
@@ -230,11 +227,10 @@ export class BoardService {
         FROM NOTICE_BOARD A JOIN
         (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
         FROM NOTICE_BOARD_IMG
-        WHERE USER_ID='${user_id}' AND USE_YN='Y'
+        WHERE USE_YN='Y'
         GROUP BY NOTICE_ID) AS B
         ON A.NOTICE_ID = B.NOTICE_ID
-        WHERE A.USER_ID='${user_id}'
-        AND A.NGHBR_NAME='${neighborhood_name}' 
+        WHERE A.NGHBR_NAME='${neighborhood_name}' 
         AND A.CATEGORY='${category}' AND A.USE_YN='Y';`);
 
       if (board.length) {
@@ -289,11 +285,10 @@ export class BoardService {
       FROM NOTICE_BOARD A JOIN
       (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
       FROM NOTICE_BOARD_IMG
-      WHERE USER_ID='${user_id}' AND USE_YN='Y'
+      WHERE USE_YN='Y'
       GROUP BY NOTICE_ID) AS B
       ON A.NOTICE_ID = B.NOTICE_ID
-      WHERE A.USER_ID='${user_id}'
-      AND A.NGHBR_NAME='${neighborhood_name}' 
+      WHERE A.NGHBR_NAME='${neighborhood_name}' 
       AND TITLE LIKE '%${title}%' AND A.USE_YN='Y'
       ORDER BY A.INSERT_DT
       LIMIT 10 OFFSET ${page_count};`);
@@ -303,11 +298,10 @@ export class BoardService {
         FROM NOTICE_BOARD A JOIN
         (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
         FROM NOTICE_BOARD_IMG
-        WHERE USER_ID='${user_id}' AND USE_YN='Y'
+        WHERE USE_YN='Y'
         GROUP BY NOTICE_ID) AS B
         ON A.NOTICE_ID = B.NOTICE_ID
-        WHERE A.USER_ID='${user_id}'
-        AND A.NGHBR_NAME='${neighborhood_name}' 
+        WHERE A.NGHBR_NAME='${neighborhood_name}' 
         AND TITLE LIKE '%${title}%' AND A.USE_YN='Y';`);
 
       if (board.length) {

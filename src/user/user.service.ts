@@ -314,7 +314,7 @@ export class UserService {
                                                       FROM NEIGHBORHOOD
                                                       WHERE USER_ID='${user_id}' AND SLCTD_NGHBR_YN='N' AND USE_YN='Y'
                                                       ORDER BY NGHBR_ID DESC
-                                                      LIMIT 1`);
+                                                      LIMIT 1;`);
           await conn.query(
             `UPDATE NEIGHBORHOOD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
              WHERE NGHBR_ID=${param.selectId};` +
