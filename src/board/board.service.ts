@@ -6,6 +6,7 @@ import {
   BoardRegisterInputDto,
   BoardRegisterOutputDto,
 } from './dto/board.register.dto';
+import { BoardSelectOutputDto } from './dto/board.select.dto';
 import uuidRandom from './uuidRandom';
 
 @Injectable()
@@ -133,7 +134,10 @@ export class BoardService {
     }
   }
 
-  async getNeighborhoodBoard(user_id: string, page: number) {
+  async getNeighborhoodBoard(
+    user_id: string,
+    page: number,
+  ): Promise<BoardSelectOutputDto> {
     const conn = getConnection();
     const neighborhood_name = await this.neighborhood(user_id);
     const page_count = (page - 1) * 10;
@@ -173,10 +177,76 @@ export class BoardService {
         };
       } else {
         this.logger.verbose(`User ${user_id} 게시판 페이지 넘버 초과`);
+        throw new HttpException(
+          '게시판 페이지 넘버 초과.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      this.logger.error(`User ${user_id} 게시판 조회 실패
+        Error: ${error}`);
+      throw new HttpException('게시판 조회 실패', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getCategoryBoard(
+    user_id: string,
+    page: number,
+    category: string,
+  ): Promise<BoardSelectOutputDto> {
+    const conn = getConnection();
+    const neighborhood_name = await this.neighborhood(user_id);
+    const page_count = (page - 1) * 10;
+
+    try {
+      const board = await conn.query(`
+      SELECT A.NOTICE_ID, A.CATEGORY, A.TITLE, A.PRICE, A.PERSONNEL, A.DEADLINE, B.NOTICE_IMG
+      FROM NOTICE_BOARD A JOIN
+      (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
+      FROM NOTICE_BOARD_IMG
+      WHERE USER_ID='${user_id}' AND USE_YN='Y'
+      GROUP BY NOTICE_ID) AS B
+      ON A.NOTICE_ID = B.NOTICE_ID
+      WHERE A.USER_ID='${user_id}'
+      AND A.NGHBR_NAME='${neighborhood_name}' 
+      AND A.CATEGORY='${category}' AND A.USE_YN='Y'
+      ORDER BY A.INSERT_DT
+      LIMIT 10 OFFSET ${page_count};`);
+
+      const [count] = await conn.query(`
+        SELECT COUNT(A.NOTICE_ID) AS count
+        FROM NOTICE_BOARD A JOIN
+        (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
+        FROM NOTICE_BOARD_IMG
+        WHERE USER_ID='${user_id}' AND USE_YN='Y'
+        GROUP BY NOTICE_ID) AS B
+        ON A.NOTICE_ID = B.NOTICE_ID
+        WHERE A.USER_ID='${user_id}'
+        AND A.NGHBR_NAME='${neighborhood_name}' 
+        AND A.CATEGORY='${category}' AND A.USE_YN='Y';`);
+
+      if (board.length) {
+        this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
         return {
-          statusCode: 400,
-          message: '게시판 페이지 넘버 초과',
+          statusCode: 200,
+          message: '게시판 조회 성공',
+          count: count.count,
+          data: board,
         };
+      } else if (page_count === 0) {
+        this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
+        return {
+          statusCode: 200,
+          message: '게시판 조회 성공',
+          count: count.count,
+          data: board,
+        };
+      } else {
+        this.logger.verbose(`User ${user_id} 게시판 페이지 넘버 초과`);
+        throw new HttpException(
+          '게시판 페이지 넘버 초과.',
+          HttpStatus.BAD_REQUEST,
+        );
       }
     } catch (error) {
       this.logger.error(`User ${user_id} 게시판 조회 실패
