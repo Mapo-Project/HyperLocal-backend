@@ -55,7 +55,7 @@ export class BoardController {
   }
 
   //게시판 등록
-  @Post('/register')
+  @Post('register')
   @ApiOperation({
     summary: '게시판 등록 API(완료)',
     description: '게시판 등록 입니다. 토큰 값 필수!',
@@ -123,7 +123,51 @@ export class BoardController {
   })
   @ApiBearerAuth()
   @UseGuards(AuthGuard())
-  async getNeighborhoodBoard(@Req() req, @Param() param: { page: number }) {
+  async getNeighborhoodBoard(
+    @Req() req,
+    @Param() param: { page: number },
+  ): Promise<BoardSelectOutputDto> {
     return await this.boardService.getNeighborhoodBoard(req.user, param.page);
+  }
+
+  //게시판 조회(카테고리)
+  @Get('category/select/:page/:category')
+  @ApiOperation({
+    summary: '게시판 조회(카테고리)(검색-10개) API(완료)',
+    description: '게시판 조회(카테고리) 입니다. 토큰 값 필수!',
+  })
+  @ApiParam({
+    name: 'page',
+    example: 1,
+    description: '게시판 페이지 넘버',
+  })
+  @ApiParam({
+    name: 'category',
+    example: '100',
+    description: '카테고리(공통코드)',
+  })
+  @ApiOkResponse({
+    description: '게시판 조회 성공',
+    type: BoardSelectOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '게시판 조회 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async getCategoryBoard(
+    @Req() req,
+    @Param() param: { page: number; category: string },
+  ): Promise<BoardSelectOutputDto> {
+    return await this.boardService.getCategoryBoard(
+      req.user,
+      param.page,
+      param.category,
+    );
   }
 }
