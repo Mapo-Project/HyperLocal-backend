@@ -170,4 +170,45 @@ export class BoardController {
       param.category,
     );
   }
+
+  //게시판 조회(제목)
+  @Get('title/select/:page/:title')
+  @ApiOperation({
+    summary: '게시판 조회(제목)(검색-10개) API(완료)',
+    description: '게시판 조회(제목) 입니다. 토큰 값 필수!',
+  })
+  @ApiParam({
+    name: 'page',
+    example: 1,
+    description: '게시판 페이지 넘버',
+  })
+  @ApiParam({
+    name: 'title',
+    example: '카페',
+    description: '검색 할 단어',
+  })
+  @ApiOkResponse({
+    description: '게시판 조회 성공',
+    type: BoardSelectOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '게시판 조회 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async getTitleBoard(
+    @Req() req,
+    @Param() param: { page: number; title: string },
+  ): Promise<BoardSelectOutputDto> {
+    return await this.boardService.getTitleBoard(
+      req.user,
+      param.page,
+      param.title,
+    );
+  }
 }
