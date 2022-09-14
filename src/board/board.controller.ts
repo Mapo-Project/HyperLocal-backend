@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -24,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { multerOptions } from 'src/user/multerOptions';
 import { BoardService } from './board.service';
+import { BoardDeleteOutputDto } from './dto/board.delete.dto';
 import { SelectBoardMenuOutputDto } from './dto/board.menu.dto';
 import {
   BoardRegisterInputDto,
@@ -245,5 +247,37 @@ export class BoardController {
     @Param() param: { noticeId: string },
   ): Promise<BoardDetailSelectOutputDto> {
     return await this.boardService.getDetailBoard(req.user, param.noticeId);
+  }
+
+  //게시판 삭제
+  @Delete('delete/:noticeId')
+  @ApiOperation({
+    summary: '게시판 삭제 API(완료)',
+    description: '게시판 삭제 입니다. 토큰 값 필수!',
+  })
+  @ApiParam({
+    name: 'noticeId',
+    example: 'a4e123ae-e815-469e-bfe9-3582ae718a8a',
+    description: '삭제할 게시판 아이디',
+  })
+  @ApiOkResponse({
+    description: '게시판 삭제 성공',
+    type: BoardDeleteOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '게시판 삭제 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async boardDelete(
+    @Req() req,
+    @Param() param: { noticeId: string },
+  ): Promise<BoardDeleteOutputDto> {
+    return await this.boardService.boardDelete(req.user, param.noticeId);
   }
 }
