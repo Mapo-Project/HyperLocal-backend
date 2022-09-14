@@ -169,10 +169,10 @@ export class UserService {
       );
 
       this.logger.verbose(`User ${user_id} 회원 프로필 이미지 수정 성공`);
-      return Object.assign({
+      return {
         statusCode: 201,
         message: '회원 프로필 이미지 수정 성공',
-      });
+      };
     }
 
     this.logger.verbose(`User ${user_id} 회원 프로필 이미지 수정 실패`);

@@ -6,7 +6,10 @@ import {
   BoardRegisterInputDto,
   BoardRegisterOutputDto,
 } from './dto/board.register.dto';
-import { BoardSelectOutputDto } from './dto/board.select.dto';
+import {
+  BoardDetailSelectOutputDto,
+  BoardSelectOutputDto,
+} from './dto/board.select.dto';
 import uuidRandom from './uuidRandom';
 
 @Injectable()
@@ -144,7 +147,8 @@ export class BoardService {
 
     try {
       const board = await conn.query(`
-      SELECT A.NOTICE_ID, A.CATEGORY, A.TITLE, A.PRICE, A.PERSONNEL, A.DEADLINE, B.NOTICE_IMG
+      SELECT A.NOTICE_ID AS noticeId, A.CATEGORY AS category, A.TITLE AS title, A.PRICE AS price, 
+      A.PERSONNEL AS personnel, A.DEADLINE AS deadline, B.NOTICE_IMG AS noticeImg
       FROM NOTICE_BOARD A JOIN 
       (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
       FROM NOTICE_BOARD_IMG
@@ -206,7 +210,8 @@ export class BoardService {
 
     try {
       const board = await conn.query(`
-      SELECT A.NOTICE_ID, A.CATEGORY, A.TITLE, A.PRICE, A.PERSONNEL, A.DEADLINE, B.NOTICE_IMG
+      SELECT A.NOTICE_ID AS noticeId, A.CATEGORY AS category, A.TITLE AS title, A.PRICE AS price, 
+      A.PERSONNEL AS personnel, A.DEADLINE AS deadline, B.NOTICE_IMG AS noticeImg
       FROM NOTICE_BOARD A JOIN
       (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
       FROM NOTICE_BOARD_IMG
@@ -278,7 +283,8 @@ export class BoardService {
 
     try {
       const board = await conn.query(`
-      SELECT A.NOTICE_ID, A.CATEGORY, A.TITLE, A.PRICE, A.PERSONNEL, A.DEADLINE, B.NOTICE_IMG
+      SELECT A.NOTICE_ID AS noticeId, A.CATEGORY AS category, A.TITLE AS title, A.PRICE AS price, 
+      A.PERSONNEL AS personnel, A.DEADLINE AS deadline, B.NOTICE_IMG AS noticeImg
       FROM NOTICE_BOARD A JOIN
       (SELECT MIN(NOTICE_IMG_ID) AS NOTICE_IMG_ID, NOTICE_ID, MAX(NOTICE_IMG) AS NOTICE_IMG
       FROM NOTICE_BOARD_IMG
@@ -336,6 +342,38 @@ export class BoardService {
       this.logger.error(`User ${user_id} 게시판 조회 실패
         Error: ${error}`);
       throw new HttpException('게시판 조회 실패', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getDetailBoard(
+    user_id: string,
+    noticeId: string,
+  ): Promise<BoardDetailSelectOutputDto> {
+    const conn = getConnection();
+
+    try {
+      const [board] = await conn.query(`
+      SELECT NOTICE_ID AS noticeId, CATEGORY AS category, TITLE AS title, DESCRIPTION AS description, 
+      LINK AS link, CONTAINER_YN AS containerYN, HOMEMADE_YN AS homemadeYN, PRICE AS price, 
+      HOW_SHARE AS howShare, PERSONNEL AS personnel, DEADLINE AS deadline, INSERT_DT AS insertDT
+      FROM NOTICE_BOARD 
+      WHERE NOTICE_ID='${noticeId}' AND USE_YN='Y';`);
+
+      const img = await conn.query(`
+      SELECT NOTICE_IMG AS img FROM NOTICE_BOARD_IMG WHERE NOTICE_ID='${noticeId}' AND USE_YN='Y';`);
+
+      board.noticeImg = img;
+
+      this.logger.verbose(`User ${user_id} 게시판 상세 조회 성공`);
+      return {
+        statusCode: 200,
+        message: '게시판 상세 조회 성공',
+        data: board,
+      };
+    } catch (error) {
+      this.logger.error(`User ${user_id} 게시판 상세 조회 실패
+        Error: ${error}`);
+      throw new HttpException('게시판 상세 조회 실패', HttpStatus.BAD_REQUEST);
     }
   }
 }
