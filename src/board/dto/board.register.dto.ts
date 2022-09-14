@@ -83,7 +83,7 @@ export class BoardRegisterInputDto {
 
 export class BoardRegisterOutputDto {
   @ApiProperty({
-    example: '201',
+    example: 201,
     description: '상태코드',
   })
   statusCode: number;

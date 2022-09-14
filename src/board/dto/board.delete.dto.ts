@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-//회원 로그아웃 Output 데이터
-export class UserLogoutOutputDto {
+export class BoardDeleteOutputDto {
   @ApiProperty({
     example: 200,
     description: '상태코드',
@@ -9,7 +8,7 @@ export class UserLogoutOutputDto {
   statusCode: number;
 
   @ApiProperty({
-    example: '회원 로그아웃 성공',
+    example: '게시판 삭제 성공',
     description: '설명',
   })
   message: string;

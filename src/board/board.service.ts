@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { createImageURL } from 'src/user/multerOptions';
 import { getConnection } from 'typeorm';
+import { BoardDeleteOutputDto } from './dto/board.delete.dto';
 import { SelectBoardMenuOutputDto } from './dto/board.menu.dto';
 import {
   BoardRegisterInputDto,
@@ -374,6 +375,45 @@ export class BoardService {
       this.logger.error(`User ${user_id} 게시판 상세 조회 실패
         Error: ${error}`);
       throw new HttpException('게시판 상세 조회 실패', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async boardDelete(
+    user_id: string,
+    noticeId: string,
+  ): Promise<BoardDeleteOutputDto> {
+    const conn = getConnection();
+
+    try {
+      const [found] = await conn.query(
+        `SELECT NOTICE_ID FROM NOTICE_BOARD
+         WHERE NOTICE_ID='${noticeId}' AND USER_ID='${user_id}' AND USE_YN='Y';`,
+      );
+
+      if (found) {
+        await conn.query(
+          `UPDATE NOTICE_BOARD SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+           WHERE NOTICE_ID='${noticeId}' AND USER_ID='${user_id}' AND USE_YN='Y';` +
+            `UPDATE NOTICE_BOARD_IMG SET USE_YN='N', UPDATE_DT=NOW(), UPDATE_ID='${user_id}' 
+             WHERE NOTICE_ID='${noticeId}' AND USER_ID='${user_id}' AND USE_YN='Y';`,
+        );
+
+        this.logger.verbose(`User ${user_id} 게시판 삭제 성공`);
+        return {
+          statusCode: 200,
+          message: '게시판 삭제 성공',
+        };
+      } else {
+        this.logger.verbose(`User ${user_id} 게시판 삭제 실패`);
+        return Object.assign({
+          statusCode: 400,
+          message: '게시판 삭제 실패',
+        });
+      }
+    } catch (error) {
+      this.logger.error(`User ${user_id} 게시판 삭제 실패
+        Error: ${error}`);
+      throw new HttpException('게시판 삭제 실패', HttpStatus.BAD_REQUEST);
     }
   }
 }
