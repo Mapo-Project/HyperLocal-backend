@@ -29,7 +29,10 @@ import {
   BoardRegisterInputDto,
   BoardRegisterOutputDto,
 } from './dto/board.register.dto';
-import { BoardSelectOutputDto } from './dto/board.select.dto';
+import {
+  BoardDetailSelectOutputDto,
+  BoardSelectOutputDto,
+} from './dto/board.select.dto';
 
 @ApiTags('게시판 API')
 @Controller('board')
@@ -210,5 +213,37 @@ export class BoardController {
       param.page,
       param.title,
     );
+  }
+
+  //게시판 상세 조회
+  @Get('detail/select/:noticeId')
+  @ApiOperation({
+    summary: '게시판 상세 조회 API(완료)',
+    description: '게시판 상세 조회 입니다. 토큰 값 필수!',
+  })
+  @ApiParam({
+    name: 'noticeId',
+    example: 'a4e123ae-e815-469e-bfe9-3582ae718a8a',
+    description: '게시판 아이디',
+  })
+  @ApiOkResponse({
+    description: '게시판 상세 조회 성공',
+    type: BoardDetailSelectOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '게시판 상세 조회 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async getDetailBoard(
+    @Req() req,
+    @Param() param: { noticeId: string },
+  ): Promise<BoardDetailSelectOutputDto> {
+    return await this.boardService.getDetailBoard(req.user, param.noticeId);
   }
 }
