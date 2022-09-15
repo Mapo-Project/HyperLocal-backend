@@ -421,15 +421,16 @@ export class BoardService {
       FROM NOTICE_BOARD 
       WHERE NOTICE_ID='${noticeId}' AND USE_YN='Y';`);
 
-      const [userImg] = await conn.query(`
-      SELECT PROFILE_IMG AS profileImg
+      const [user] = await conn.query(`
+      SELECT NICKNAME AS name, PROFILE_IMG AS profileImg
       FROM USER WHERE USER_ID='${board.userId}' AND STATUS='P';`);
 
       const img = await conn.query(`
       SELECT NOTICE_IMG_ID AS imgId, NOTICE_IMG AS img 
       FROM NOTICE_BOARD_IMG WHERE NOTICE_ID='${noticeId}' AND USE_YN='Y';`);
 
-      board.userImg = userImg.profileImg;
+      board.nickname = user.name;
+      board.userImg = user.profileImg;
       board.noticeImg = img;
 
       this.logger.verbose(`게시판 상세 조회 성공`);

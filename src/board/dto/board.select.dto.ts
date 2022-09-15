@@ -127,6 +127,12 @@ export class BoardDetailSelectDto {
   insertDT: string;
 
   @ApiProperty({
+    example: 'hyperLocal',
+    description: '유저 닉네임',
+  })
+  nickname: string;
+
+  @ApiProperty({
     example: 'profile url',
     description: '유저 프로필 이미지',
   })
