@@ -103,6 +103,38 @@ export class BoardController {
     );
   }
 
+  //게시판 조회(My Board)
+  @Get('my/select/:page')
+  @ApiOperation({
+    summary: '게시판 조회(My Board)(검색-10개) API(완료)',
+    description: '게시판 조회(My Board) 입니다.',
+  })
+  @ApiParam({
+    name: 'page',
+    example: 1,
+    description: '게시판 페이지 넘버',
+  })
+  @ApiOkResponse({
+    description: '게시판 조회 성공',
+    type: BoardSelectOutputDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '게시판 조회 실패',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '인증 오류',
+  })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard())
+  async getMyBoard(
+    @Req() req,
+    @Param() param: { page: number },
+  ): Promise<BoardSelectOutputDto> {
+    return await this.boardService.getMyBoard(req.user, param.page);
+  }
+
   //게시판 조회(동네)
   @Get('neighborhood/select/:page/:dong')
   @ApiOperation({
@@ -260,7 +292,7 @@ export class BoardController {
   })
   @ApiParam({
     name: 'noticeId',
-    example: 'a4e123ae-e815-469e-bfe9-3582ae718a8a',
+    example: 1,
     description: '삭제할 게시판 아이디',
   })
   @ApiOkResponse({
