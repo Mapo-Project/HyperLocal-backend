@@ -229,7 +229,7 @@ export class UserController {
   }
 
   //회원 동네 등록
-  @Post('/neighborhood/registration/:neighborhood')
+  @Post('neighborhood/registration/:neighborhood')
   @ApiOperation({
     summary: '회원 동네 등록 API(완료)',
     description: '회원 동네 등록 입니다. 토큰 값 필수!',
@@ -263,7 +263,7 @@ export class UserController {
   }
 
   //회원 동네 선택
-  @Post('/neighborhood/choice/:selectId')
+  @Post('neighborhood/choice/:selectId')
   @ApiOperation({
     summary: '회원 동네 선택 API(완료)',
     description: '회원 동네 선택 입니다. 토큰 값 필수!',
@@ -296,7 +296,7 @@ export class UserController {
   }
 
   //회원 동네 조회
-  @Get('/neighborhood/select')
+  @Get('neighborhood/select')
   @ApiOperation({
     summary: '회원 동네 조회 API(완료)',
     description: '회원 동네 조회 입니다. 토큰 값 필수!',
@@ -320,7 +320,7 @@ export class UserController {
   }
 
   //회원 동네 삭제
-  @Delete('/neighborhood/:selectId')
+  @Delete('neighborhood/:selectId')
   @ApiOperation({
     summary: '회원 동네 삭제 API(완료)',
     description: '회원 동네 삭제 입니다. 토큰 값 필수!',
@@ -352,7 +352,7 @@ export class UserController {
   }
 
   //회원 로그아웃
-  @Get('/logout')
+  @Get('logout')
   @ApiOperation({
     summary: '회원 로그아웃 API(완료)',
     description: '회원 로그아웃 입니다. 토큰 값 필수!',
@@ -372,7 +372,7 @@ export class UserController {
   }
 
   //회원 탈퇴
-  @Delete('/withdrawal')
+  @Delete('withdrawal')
   @ApiOperation({
     summary: '회원 탈퇴 API(완료)',
     description: '회원 탈퇴 입니다. 토큰 값 필수!',

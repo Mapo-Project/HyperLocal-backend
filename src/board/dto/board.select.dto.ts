@@ -3,10 +3,10 @@ import { ApiProperty } from '@nestjs/swagger';
 //게시판 데이터
 export class BoardSelectDto {
   @ApiProperty({
-    example: 'a4e123ae-e815-469e-bfe9-3582ae718a8a',
+    example: 1,
     description: '게시판 아이디',
   })
-  noticeId: string;
+  noticeId: number;
 
   @ApiProperty({ example: '100', description: '카테고리(코드값)' })
   category: string;
@@ -56,6 +56,9 @@ export class BoardSelectOutputDto {
 
 //게시판 상세 이미지 데이터
 export class BoardDetailImgSelectDto {
+  @ApiProperty({ example: 1, description: '게시판 이미지 아이디' })
+  imgId: number;
+
   @ApiProperty({ example: 'imgUrl', description: '게시판 이미지' })
   img: string;
 }
@@ -63,10 +66,22 @@ export class BoardDetailImgSelectDto {
 //게시판 상세 데이터
 export class BoardDetailSelectDto {
   @ApiProperty({
-    example: 'a4e123ae-e815-469e-bfe9-3582ae718a8a',
+    example: 1,
     description: '게시판 아이디',
   })
-  noticeId: string;
+  noticeId: number;
+
+  @ApiProperty({
+    example: '98bb81cd-532e-40b5-9b4b-7c8f70d6af1b-2329907613',
+    description: '유저 아이디',
+  })
+  userId: string;
+
+  @ApiProperty({
+    example: '성산동',
+    description: '동 이름',
+  })
+  nghbrName: string;
 
   @ApiProperty({ example: '100', description: '카테고리(코드값)' })
   category: string;
@@ -110,6 +125,18 @@ export class BoardDetailSelectDto {
     description: '등록 날짜',
   })
   insertDT: string;
+
+  @ApiProperty({
+    example: 'hyperLocal',
+    description: '유저 닉네임',
+  })
+  nickname: string;
+
+  @ApiProperty({
+    example: 'profile url',
+    description: '유저 프로필 이미지',
+  })
+  userImg: string;
 
   @ApiProperty({ type: [BoardDetailImgSelectDto] })
   noticeImg: BoardDetailImgSelectDto;
