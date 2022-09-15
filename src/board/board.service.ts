@@ -340,33 +340,36 @@ export class BoardService {
     }
   }
 
-  async getDetailBoard(
-    user_id: string,
-    noticeId: string,
-  ): Promise<BoardDetailSelectOutputDto> {
+  async getDetailBoard(noticeId: string): Promise<BoardDetailSelectOutputDto> {
     const conn = getConnection();
 
     try {
       const [board] = await conn.query(`
-      SELECT NOTICE_ID AS noticeId, CATEGORY AS category, TITLE AS title, DESCRIPTION AS description, 
+      SELECT NOTICE_ID AS noticeId, USER_ID AS userId, NGHBR_NAME AS nghbrName,  CATEGORY AS category, TITLE AS title, DESCRIPTION AS description, 
       LINK AS link, CONTAINER_YN AS containerYN, HOMEMADE_YN AS homemadeYN, PRICE AS price, 
       HOW_SHARE AS howShare, PERSONNEL AS personnel, DEADLINE AS deadline, INSERT_DT AS insertDT
       FROM NOTICE_BOARD 
       WHERE NOTICE_ID='${noticeId}' AND USE_YN='Y';`);
 
-      const img = await conn.query(`
-      SELECT NOTICE_IMG AS img FROM NOTICE_BOARD_IMG WHERE NOTICE_ID='${noticeId}' AND USE_YN='Y';`);
+      const [userImg] = await conn.query(`
+      SELECT PROFILE_IMG AS profileImg
+      FROM USER WHERE USER_ID='${board.userId}' AND STATUS='P';`);
 
+      const img = await conn.query(`
+      SELECT NOTICE_IMG_ID AS imgId, NOTICE_IMG AS img 
+      FROM NOTICE_BOARD_IMG WHERE NOTICE_ID='${noticeId}' AND USE_YN='Y';`);
+
+      board.userImg = userImg.profileImg;
       board.noticeImg = img;
 
-      this.logger.verbose(`User ${user_id} 게시판 상세 조회 성공`);
+      this.logger.verbose(`게시판 상세 조회 성공`);
       return {
         statusCode: 200,
         message: '게시판 상세 조회 성공',
         data: board,
       };
     } catch (error) {
-      this.logger.error(`User ${user_id} 게시판 상세 조회 실패
+      this.logger.error(`게시판 상세 조회 실패
         Error: ${error}`);
       throw new HttpException('게시판 상세 조회 실패', HttpStatus.BAD_REQUEST);
     }

@@ -240,13 +240,10 @@ export class BoardController {
     status: 401,
     description: '인증 오류',
   })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard())
   async getDetailBoard(
-    @Req() req,
     @Param() param: { noticeId: string },
   ): Promise<BoardDetailSelectOutputDto> {
-    return await this.boardService.getDetailBoard(req.user, param.noticeId);
+    return await this.boardService.getDetailBoard(param.noticeId);
   }
 
   //게시판 삭제
