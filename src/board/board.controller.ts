@@ -104,15 +104,20 @@ export class BoardController {
   }
 
   //게시판 조회(동네)
-  @Get('neighborhood/select/:page')
+  @Get('neighborhood/select/:page/:dong')
   @ApiOperation({
     summary: '게시판 조회(동네)(검색-10개) API(완료)',
-    description: '게시판 조회(동네) 입니다. 토큰 값 필수!',
+    description: '게시판 조회(동네) 입니다.',
   })
   @ApiParam({
     name: 'page',
     example: 1,
     description: '게시판 페이지 넘버',
+  })
+  @ApiParam({
+    name: 'dong',
+    example: '성산동',
+    description: '동 이름',
   })
   @ApiOkResponse({
     description: '게시판 조회 성공',
@@ -126,25 +131,27 @@ export class BoardController {
     status: 401,
     description: '인증 오류',
   })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard())
   async getNeighborhoodBoard(
-    @Req() req,
-    @Param() param: { page: number },
+    @Param() param: { page: number; dong: string },
   ): Promise<BoardSelectOutputDto> {
-    return await this.boardService.getNeighborhoodBoard(req.user, param.page);
+    return await this.boardService.getNeighborhoodBoard(param.page, param.dong);
   }
 
   //게시판 조회(카테고리)
-  @Get('category/select/:page/:category')
+  @Get('category/select/:page/:dong/:category')
   @ApiOperation({
     summary: '게시판 조회(카테고리)(검색-10개) API(완료)',
-    description: '게시판 조회(카테고리) 입니다. 토큰 값 필수!',
+    description: '게시판 조회(카테고리) 입니다.',
   })
   @ApiParam({
     name: 'page',
     example: 1,
     description: '게시판 페이지 넘버',
+  })
+  @ApiParam({
+    name: 'dong',
+    example: '성산동',
+    description: '동 이름',
   })
   @ApiParam({
     name: 'category',
@@ -163,29 +170,31 @@ export class BoardController {
     status: 401,
     description: '인증 오류',
   })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard())
   async getCategoryBoard(
-    @Req() req,
-    @Param() param: { page: number; category: string },
+    @Param() param: { page: number; dong: string; category: string },
   ): Promise<BoardSelectOutputDto> {
     return await this.boardService.getCategoryBoard(
-      req.user,
       param.page,
+      param.dong,
       param.category,
     );
   }
 
   //게시판 조회(제목)
-  @Get('title/select/:page/:title')
+  @Get('title/select/:page/:dong/:title')
   @ApiOperation({
     summary: '게시판 조회(제목)(검색-10개) API(완료)',
-    description: '게시판 조회(제목) 입니다. 토큰 값 필수!',
+    description: '게시판 조회(제목) 입니다.',
   })
   @ApiParam({
     name: 'page',
     example: 1,
     description: '게시판 페이지 넘버',
+  })
+  @ApiParam({
+    name: 'dong',
+    example: '성산동',
+    description: '동 이름',
   })
   @ApiParam({
     name: 'title',
@@ -204,15 +213,12 @@ export class BoardController {
     status: 401,
     description: '인증 오류',
   })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard())
   async getTitleBoard(
-    @Req() req,
-    @Param() param: { page: number; title: string },
+    @Param() param: { page: number; dong: string; title: string },
   ): Promise<BoardSelectOutputDto> {
     return await this.boardService.getTitleBoard(
-      req.user,
       param.page,
+      param.dong,
       param.title,
     );
   }
@@ -221,11 +227,11 @@ export class BoardController {
   @Get('detail/select/:noticeId')
   @ApiOperation({
     summary: '게시판 상세 조회 API(완료)',
-    description: '게시판 상세 조회 입니다. 토큰 값 필수!',
+    description: '게시판 상세 조회 입니다.',
   })
   @ApiParam({
     name: 'noticeId',
-    example: 'a4e123ae-e815-469e-bfe9-3582ae718a8a',
+    example: '1',
     description: '게시판 아이디',
   })
   @ApiOkResponse({

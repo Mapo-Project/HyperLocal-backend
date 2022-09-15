@@ -66,7 +66,6 @@ export class BoardService {
     boardRegisterInputDto: BoardRegisterInputDto,
     files: File[],
   ): Promise<BoardRegisterOutputDto> {
-    const notice_id = uuidRandom();
     const {
       category,
       title,
@@ -84,11 +83,10 @@ export class BoardService {
     const arr = [];
     const neighborhood_name = await this.neighborhood(user_id);
 
-    const sql = `INSERT INTO NOTICE_BOARD(NOTICE_ID, USER_ID, NGHBR_NAME, CATEGORY, TITLE, DESCRIPTION, LINK, 
+    const sql = `INSERT INTO NOTICE_BOARD(USER_ID, NGHBR_NAME, CATEGORY, TITLE, DESCRIPTION, LINK, 
                  CONTAINER_YN, HOMEMADE_YN, PRICE, HOW_SHARE, PERSONNEL, DEADLINE, INSERT_DT, INSERT_ID) 
-                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,NOW(),?);`;
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,NOW(),?);`;
     const params = [
-      notice_id,
       user_id,
       neighborhood_name,
       category,
@@ -104,16 +102,6 @@ export class BoardService {
       user_id,
     ];
 
-    const img_sql = `INSERT INTO NOTICE_BOARD_IMG(NOTICE_ID, USER_ID, NOTICE_IMG, INSERT_DT, INSERT_ID) VALUES ?;`;
-    if (files.length) {
-      for (const file of files) {
-        arr.push([notice_id, user_id, createImageURL(file), date, notice_id]);
-      }
-    } else {
-      const board_img = process.env.BOARD_IMG_DEFAULT;
-      arr.push([notice_id, user_id, board_img, date, notice_id]);
-    }
-
     if (personnel < '2') {
       this.logger.verbose(`User ${user_id} 참여 인원은 2명 이상 필요`);
       throw new HttpException(
@@ -124,6 +112,30 @@ export class BoardService {
 
     try {
       await conn.query(sql, params);
+
+      const [notice_id] = await conn.query(
+        `SELECT NOTICE_ID AS id
+         FROM NOTICE_BOARD
+         WHERE USER_ID='${user_id}' AND USE_YN='Y'
+         ORDER BY INSERT_DT DESC
+         LIMIT 1`,
+      );
+
+      const img_sql = `INSERT INTO NOTICE_BOARD_IMG(NOTICE_ID, USER_ID, NOTICE_IMG, INSERT_DT, INSERT_ID) VALUES ?;`;
+      if (files.length) {
+        for (const file of files) {
+          arr.push([
+            notice_id.id,
+            user_id,
+            createImageURL(file),
+            date,
+            notice_id.id,
+          ]);
+        }
+      } else {
+        const board_img = process.env.BOARD_IMG_DEFAULT;
+        arr.push([notice_id.id, user_id, board_img, date, notice_id.id]);
+      }
 
       await conn.query(img_sql, [arr]);
 
@@ -139,11 +151,11 @@ export class BoardService {
   }
 
   async getNeighborhoodBoard(
-    user_id: string,
     page: number,
+    dong: string,
   ): Promise<BoardSelectOutputDto> {
     const conn = getConnection();
-    const neighborhood_name = await this.neighborhood(user_id);
+    // const neighborhood_name = await this.neighborhood(user_id);
     const page_count = (page - 1) * 10;
 
     try {
@@ -156,7 +168,7 @@ export class BoardService {
       WHERE USE_YN='Y'
       GROUP BY NOTICE_ID) AS B 
       ON A.NOTICE_ID = B.NOTICE_ID
-      WHERE A.NGHBR_NAME='${neighborhood_name}' AND A.USE_YN='Y'
+      WHERE A.NGHBR_NAME='${dong}' AND A.USE_YN='Y'
       ORDER BY A.INSERT_DT
       LIMIT 10 OFFSET ${page_count};`);
 
@@ -168,10 +180,10 @@ export class BoardService {
         WHERE USE_YN='Y'
         GROUP BY NOTICE_ID) AS B 
         ON A.NOTICE_ID = B.NOTICE_ID
-        WHERE A.NGHBR_NAME='${neighborhood_name}' AND A.USE_YN='Y';`);
+        WHERE A.NGHBR_NAME='${dong}' AND A.USE_YN='Y';`);
 
       if (board.length) {
-        this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
+        this.logger.verbose(`게시판 조회 성공`);
         return {
           statusCode: 200,
           message: '게시판 조회 성공',
@@ -186,25 +198,24 @@ export class BoardService {
       }
     } catch (error) {
       if (error.response === '게시판 페이지 넘버 초과') {
-        this.logger.verbose(`User ${user_id} 게시판 페이지 넘버 초과`);
+        this.logger.verbose(`게시판 페이지 넘버 초과`);
         throw new HttpException(
           '게시판 페이지 넘버 초과',
           HttpStatus.BAD_REQUEST,
         );
       }
-      this.logger.error(`User ${user_id} 게시판 조회 실패
+      this.logger.error(`게시판 조회 실패
         Error: ${error}`);
       throw new HttpException('게시판 조회 실패', HttpStatus.BAD_REQUEST);
     }
   }
 
   async getCategoryBoard(
-    user_id: string,
     page: number,
+    dong: string,
     category: string,
   ): Promise<BoardSelectOutputDto> {
     const conn = getConnection();
-    const neighborhood_name = await this.neighborhood(user_id);
     const page_count = (page - 1) * 10;
 
     try {
@@ -217,7 +228,7 @@ export class BoardService {
       WHERE USE_YN='Y'
       GROUP BY NOTICE_ID) AS B
       ON A.NOTICE_ID = B.NOTICE_ID
-      WHERE A.NGHBR_NAME='${neighborhood_name}' 
+      WHERE A.NGHBR_NAME='${dong}' 
       AND A.CATEGORY='${category}' AND A.USE_YN='Y'
       ORDER BY A.INSERT_DT
       LIMIT 10 OFFSET ${page_count};`);
@@ -230,11 +241,11 @@ export class BoardService {
         WHERE USE_YN='Y'
         GROUP BY NOTICE_ID) AS B
         ON A.NOTICE_ID = B.NOTICE_ID
-        WHERE A.NGHBR_NAME='${neighborhood_name}' 
+        WHERE A.NGHBR_NAME='${dong}' 
         AND A.CATEGORY='${category}' AND A.USE_YN='Y';`);
 
       if (board.length) {
-        this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
+        this.logger.verbose(`게시판 조회 성공`);
         return {
           statusCode: 200,
           message: '게시판 조회 성공',
@@ -242,7 +253,7 @@ export class BoardService {
           data: board,
         };
       } else if (page_count === 0) {
-        this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
+        this.logger.verbose(`게시판 조회 성공`);
         return {
           statusCode: 200,
           message: '게시판 조회 성공',
@@ -257,25 +268,24 @@ export class BoardService {
       }
     } catch (error) {
       if (error.response === '게시판 페이지 넘버 초과') {
-        this.logger.verbose(`User ${user_id} 게시판 페이지 넘버 초과`);
+        this.logger.verbose(`게시판 페이지 넘버 초과`);
         throw new HttpException(
           '게시판 페이지 넘버 초과',
           HttpStatus.BAD_REQUEST,
         );
       }
-      this.logger.error(`User ${user_id} 게시판 조회 실패
+      this.logger.error(`게시판 조회 실패
         Error: ${error}`);
       throw new HttpException('게시판 조회 실패', HttpStatus.BAD_REQUEST);
     }
   }
 
   async getTitleBoard(
-    user_id: string,
     page: number,
+    dong: string,
     title: string,
   ): Promise<BoardSelectOutputDto> {
     const conn = getConnection();
-    const neighborhood_name = await this.neighborhood(user_id);
     const page_count = (page - 1) * 10;
 
     try {
@@ -288,7 +298,7 @@ export class BoardService {
       WHERE USE_YN='Y'
       GROUP BY NOTICE_ID) AS B
       ON A.NOTICE_ID = B.NOTICE_ID
-      WHERE A.NGHBR_NAME='${neighborhood_name}' 
+      WHERE A.NGHBR_NAME='${dong}' 
       AND TITLE LIKE '%${title}%' AND A.USE_YN='Y'
       ORDER BY A.INSERT_DT
       LIMIT 10 OFFSET ${page_count};`);
@@ -301,11 +311,11 @@ export class BoardService {
         WHERE USE_YN='Y'
         GROUP BY NOTICE_ID) AS B
         ON A.NOTICE_ID = B.NOTICE_ID
-        WHERE A.NGHBR_NAME='${neighborhood_name}' 
+        WHERE A.NGHBR_NAME='${dong}' 
         AND TITLE LIKE '%${title}%' AND A.USE_YN='Y';`);
 
       if (board.length) {
-        this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
+        this.logger.verbose(`게시판 조회 성공`);
         return {
           statusCode: 200,
           message: '게시판 조회 성공',
@@ -313,7 +323,7 @@ export class BoardService {
           data: board,
         };
       } else if (page_count === 0) {
-        this.logger.verbose(`User ${user_id} 게시판 조회 성공`);
+        this.logger.verbose(`게시판 조회 성공`);
         return {
           statusCode: 200,
           message: '게시판 조회 성공',
@@ -328,13 +338,13 @@ export class BoardService {
       }
     } catch (error) {
       if (error.response === '게시판 페이지 넘버 초과') {
-        this.logger.verbose(`User ${user_id} 게시판 페이지 넘버 초과`);
+        this.logger.verbose(`게시판 페이지 넘버 초과`);
         throw new HttpException(
           '게시판 페이지 넘버 초과',
           HttpStatus.BAD_REQUEST,
         );
       }
-      this.logger.error(`User ${user_id} 게시판 조회 실패
+      this.logger.error(`게시판 조회 실패
         Error: ${error}`);
       throw new HttpException('게시판 조회 실패', HttpStatus.BAD_REQUEST);
     }

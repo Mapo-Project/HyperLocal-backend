@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 //게시판 데이터
 export class BoardSelectDto {
   @ApiProperty({
-    example: 'a4e123ae-e815-469e-bfe9-3582ae718a8a',
+    example: '1',
     description: '게시판 아이디',
   })
   noticeId: string;
@@ -63,7 +63,7 @@ export class BoardDetailImgSelectDto {
 //게시판 상세 데이터
 export class BoardDetailSelectDto {
   @ApiProperty({
-    example: 'a4e123ae-e815-469e-bfe9-3582ae718a8a',
+    example: '1',
     description: '게시판 아이디',
   })
   noticeId: string;
